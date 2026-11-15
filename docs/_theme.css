@@ -71,7 +71,7 @@ button{color:inherit;font:inherit;cursor:pointer;border:0;background:none}
 .badge{
   display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px;border:1px solid var(--line-2);
   border-radius:7px;background:var(--white);font:600 10.5px var(--mono);letter-spacing:.03em;color:var(--graphite-700);
-  transition:border-color .18s,color .18s,transform .18s;
+  white-space:nowrap;transition:border-color .18s,color .18s,transform .18s;
 }
 .badge:hover{border-color:var(--cyan-700);color:var(--cyan-700);transform:translateY(-1px)}
 .badge svg{width:12px;height:12px}
@@ -79,6 +79,9 @@ button{color:inherit;font:inherit;cursor:pointer;border:0;background:none}
 .nav a{color:var(--muted);font-size:13px;font-weight:600;transition:color .18s}
 .nav a:hover{color:var(--cyan-700)}
 .topbar .right{display:flex;align-items:center;gap:10px}
+/* на узком экране навигация по секциям не помещается в шапку — она уходит,
+   но ведёт по странице липкая панель с итогом и кнопкой в футере */
+@media(max-width:940px){.nav{display:none}}
 
 /* ---------------- кнопки ---------------- */
 .btn{display:inline-flex;align-items:center;gap:9px;padding:13px 21px;border-radius:11px;font-weight:700;font-size:15px;transition:transform .2s,box-shadow .2s,background .2s,border-color .2s}
@@ -352,3 +355,8 @@ footer code{font-family:var(--mono);font-size:12px}
 .heat-row{gap:4px}
 .cell{height:28px}
 .heat-row .hname{font-size:12px}
+@media(max-width:620px){
+  .heat-row{grid-template-columns:112px repeat(var(--cols),minmax(34px,1fr))}
+  .cell{height:24px}
+  .heat-row .hname{font-size:11px}
+}
