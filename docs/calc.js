@@ -179,7 +179,11 @@
       var eff = "";
       var effLabel = "экономия в год";
       if (co.m && co.c) {
-        var rr = calc(Object.assign({}, state, { m: co.m, c: co.c, rev: co.rev || 0, margin: co.margin || 0 }));
+        // Считаем по собственным настройкам компании, а не по текущим ползункам:
+        // число на карточке должно совпадать с тем, что получится после выбора.
+        var rr = calc(Object.assign({}, state, {
+          m: co.m, c: co.c, rev: co.rev || 0, margin: co.margin || 0
+        }, co.over || {}));
         eff = fmtShort(rr.net);
       } else {
         eff = "нужен штат";
