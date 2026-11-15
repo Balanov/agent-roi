@@ -12,12 +12,16 @@
 
 from __future__ import annotations
 
+import json
 import os
+import shutil
+import subprocess
 import sys
 
 Q = 0.5                 # доля времени оператора, снимаемая подготовкой
 FIXED_MONTH = 120_000   # фиксированные затраты на контур, ₽/мес
 DAYS = 365
+PRODUCTIVE_HOURS = 147  # полезных часов оператора в месяц
 
 
 def calc(m=0, p1=0.5, p2=0.55, p3=0.15, aht=10.0, c=1200.0,
@@ -121,6 +125,56 @@ def test_negative_effect_is_reported_not_hidden():
 def test_gross_equals_hours_times_cost():
     r = calc(m=77_777, p1=0.47, p2=0.61, p3=0.22, aht=9.0, c=1_234.0)
     assert approx(r["gross"], r["hours_year"] * 1_234.0)
+
+
+def test_js_engine_agrees_with_python_reference():
+    """Браузерный движок и эталон на Python обязаны считать одинаково.
+
+    Иначе опубликованные на странице числа и проверяемая формула разойдутся,
+    и проверяемость превратится в декорацию.
+    """
+    node = shutil.which("node")
+    js_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs", "calc.js")
+    if not node or not os.path.exists(js_path):
+        print("  (node недоступен — сверка движка пропущена)")
+        return
+
+    # JS принимает доли в процентах, Python — в долях. Явно переводим.
+    cases = [
+        # (m, p1%, p2%, p3%, aht, c, cai, rev, d, margin)
+        (757_500, 50, 30, 15, 10, 1200, 4, 998_000_000_000, 1.0, 23.0),
+        (3_333_333, 50, 30, 15, 10, 1200, 4, 0, 1.0, 0.0),
+        (50_000, 45, 55, 20, 8, 960, 2, 10_000_000_000, 0.5, 15.0),
+        (0, 50, 55, 15, 10, 1200, 4, 0, 1.0, 0.0),
+        (1_000_000, 70, 80, 0, 20, 2000, 10, 0, 2.0, 30.0),
+    ]
+    js_cases = [
+        {
+            "m": m, "p1": p1, "p2": p2, "p3": p3, "aht": aht, "c": c,
+            "cai": cai, "rev": rev, "d": d, "margin": margin,
+        }
+        for m, p1, p2, p3, aht, c, cai, rev, d, margin in cases
+    ]
+    script = (
+        "const m = require(%s);"
+        "const cs = %s;"
+        "console.log(JSON.stringify(cs.map(c => m.calc(c))));"
+    ) % (json.dumps(os.path.abspath(js_path)), json.dumps(js_cases))
+
+    res = subprocess.run([node, "-e", script], capture_output=True, text=True)
+    assert res.returncode == 0, res.stderr
+    got = json.loads(res.stdout)
+
+    for (m, p1, p2, p3, aht, c, cai, rev, d, margin), g in zip(cases, got):
+        py = calc(m=m, p1=p1 / 100, p2=p2 / 100, p3=p3 / 100,
+                  aht=aht, c=c, cai=cai, rev=rev, d=d / 100, margin=margin / 100)
+        pairs = [
+            ("gross", "gross"), ("cost", "cost"), ("net", "net"),
+            ("potential", "potential"), ("perDay", "per_day"), ("netPerDay", "net_per_day"),
+            ("hoursMonth", "hours_month"), ("hoursYear", "hours_year"),
+        ]
+        for js_key, py_key in pairs:
+            assert approx(g[js_key], py[py_key]), (js_key, (m, p1, p2), g[js_key], py[py_key])
 
 
 def main() -> int:

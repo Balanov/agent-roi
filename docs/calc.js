@@ -78,7 +78,17 @@
 
   /* ---------- состояние ---------- */
   var state = Object.assign({}, CO);
-  var companies = (window.COMPANIES || []);
+  var companies = (typeof window !== "undefined" && window.COMPANIES) || [];
+
+  /* ---------- API (работает и в браузере, и в Node) ---------- */
+  var api = {
+    calc: calc, CO: CO, Q: Q, FIXED_MONTH: FIXED_MONTH, PRODUCTIVE_HOURS: PRODUCTIVE_HOURS
+  };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  if (typeof window !== "undefined") window.CONTOUR = api;
+
+  // Без DOM (Node — сверка движка с эталоном) дальше идти некуда.
+  if (typeof document === "undefined") return;
 
   /* ---------- элементы ---------- */
   var $ = function (id) { return document.getElementById(id); };
@@ -306,7 +316,4 @@
 
   buildSelect();
   render();
-
-  // для тестов и внешних скриптов
-  window.CONTOUR = { calc: calc, CO: CO, Q: Q, FIXED_MONTH: FIXED_MONTH };
 })();

@@ -20,43 +20,33 @@ jobs:
           python-version: '3.12'
 
       - name: Unit tests
+        # Внутри — и проверка формулы, и сверка браузерного движка с эталоном на Python.
         run: python tests/test_formula.py
 
-      - name: The published page must use the same formula
+      - name: Константы формулы совпадают с эталоном
         run: |
-          # Движок в браузере и эталон на Python обязаны считать одинаково.
-          # Иначе опубликованные числа и проверяемая формула разойдутся.
           python3 - <<'PY'
-          import re, subprocess, sys, json
+          import re, sys
 
           with open("docs/calc.js", encoding="utf-8") as fh:
               js = fh.read()
+          with open("tests/test_formula.py", encoding="utf-8") as fh:
+              py = fh.read()
 
-          m = re.search(r"function calc\(c\)\s*\{(.*?)\n  \}", js, re.S)
-          assert m, "не найдена функция calc в docs/calc.js"
-          body = m.group(1)
+          def js_const(name):
+              m = re.search(rf"{name}\s*=\s*([0-9.]+)", js)
+              assert m, f"в calc.js нет {name}"
+              return float(m.group(1))
 
-          required = [
-              "hoursMonth", "gross", "cost", "net", "potential", "perDay",
-              "FIXED_MONTH", "PRODUCTIVE_HOURS", "Q",
-          ]
-          for name in required:
-              assert name in body, f"в формуле нет {name}"
+          def py_const(name):
+              m = re.search(rf"^{name}\s*=\s*([0-9.]+)", py, re.M)
+              assert m, f"в test_formula.py нет {name}"
+              return float(m.group(1))
 
-          # ключевая проверка: стоимость решения считается только по закрытым обращениям
-          assert "p1 * p2 * cai" in body.replace("  ", " "), \
-              "cost_ai должен применяться только к обращениям, закрытым агентом"
-
-          # и потенциал канала не должен подмешиваться в гарантированный эффект
-          assert "net = gross - cost" in body.replace("  ", " "), \
-              "чистый эффект должен быть gross минус cost"
-          assert "net + potential" in body.replace("  ", " "), \
-              "в день считается как net плюс потенциал"
-
-          # сверить константы с эталоном
-          out = subprocess.run([sys.executable, "-c", "import tests.test_formula as t; print(t.Q, t.FIXED_MONTH, t.PRODUCTIVE_HOURS if hasattr(t,'PRODUCTIVE_HOURS') else 147)"],
-                               capture_output=True, text=True)
-          print("эталон:", out.stdout.strip() or out.stderr.strip())
+          for name in ("Q", "FIXED_MONTH", "PRODUCTIVE_HOURS"):
+              a, b = js_const(name), py_const(name)
+              assert a == b, f"{name}: движок {a} != эталон {b}"
+              print(f"{name} = {a} — совпадает")
           PY
 
   pages:
