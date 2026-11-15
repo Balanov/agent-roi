@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Калькулятор эффекта агентной автоматизации — считает по открытой формуле</title>
+<meta name="description" content="Подставьте компанию или свои цифры — получите экономию на процессе и потенциал агентного канала в рублях. Формула раскрыта, каждый коэффициент со ссылкой на публичный источник.">
+<meta name="theme-color" content="#fafbfc">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f3a49'/%3E%3Cpath d='M9 21V11h5.5a3.5 3.5 0 0 1 0 7H13l4 3' stroke='%2367d4e8' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./_theme.css">
+<link rel="canonical" href="https://balanov.github.io/agent-roi/">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Калькулятор эффекта агентной автоматизации",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "description": "Открытый калькулятор экономии на процессе и потенциала агентного канала. Формула раскрыта, коэффициенты привязаны к публичным источникам.",
+  "softwareVersion": "1.0.0",
+  "author": { "@type": "Person", "name": "Антон Баланов", "url": "https://balanov.pro/" },
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "1500000", "priceCurrency": "RUB" }
+}
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="mark">К</span>КОНТУР</a>
+    <nav class="nav">
+      <a href="#calc">Расчёт</a>
+      <a href="#what">Что внедряется</a>
+      <a href="#formula">Формула</a>
+      <a href="#coef">Коэффициенты</a>
+      <a href="#companies">Компании</a>
+      <a href="#verify">Проверка</a>
+    </nav>
+    <span class="stamp">v1.0 · 15.11.2026</span>
+    <a class="btn-ghost" href="https://github.com/Balanov/readiness-probe" rel="noopener">Измеритель ↗</a>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span>открытая формула · публичные источники</span>
+    <h1>Внедрите агентный контур — <span class="hl">и посчитайте, что это принесёт</span></h1>
+    <p class="lede">
+      Не обещание «сэкономия до 40%». Расчёт, в котором каждое слагаемое видно, каждый коэффициент
+      привязан к публичному источнику, а экономия на процессе отделена от потенциала нового канала.
+      Подставьте свои цифры — или выберите компанию.
+    </p>
+
+    <div class="calc" id="calc">
+      <!-- ---------- входы ---------- -->
+      <div class="card">
+        <div class="pad">
+          <h3>Входные данные</h3>
+
+          <div class="field">
+            <label for="company">Компания</label>
+            <select id="company"></select>
+            <div class="hint" id="companyHint">Публичные данные подставятся автоматически. Всё можно изменить.</div>
+          </div>
+
+          <div class="two" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="field">
+              <label for="ops">Операторов поддержки <span class="v" id="opsVal">—</span></label>
+              <input type="number" id="ops" min="0" step="10" inputmode="numeric" placeholder="например, 600">
+              <div class="hint">Поток выводится: операторов × 147 ч × 60 ÷ минут на обращение</div>
+            </div>
+            <div class="field">
+              <label for="m">Обращений в месяц <span class="v" id="mVal">—</span></label>
+              <input type="number" id="m" min="0" step="1000" inputmode="numeric">
+              <div class="hint" id="mHint"></div>
+            </div>
+            <div class="field">
+              <label for="c">Стоимость часа оператора, ₽ <span class="v" id="cVal">—</span></label>
+              <input type="number" id="c" min="0" step="10" inputmode="numeric">
+              <div class="hint">960 ₽ — аутсорсинг, 1 360–2 040 ₽ — свой КЦ (Telecontact, Forbes)</div>
+            </div>
+          </div>
+
+          <div class="two">
+            <div class="field">
+              <label for="rev">Выручка за год, ₽ <span class="v" id="revVal">—</span></label>
+              <input type="number" id="rev" min="0" step="1000000" inputmode="numeric">
+              <div class="hint" id="revHint">Публичная отчётность или оценка — источник рядом с названием компании</div>
+            </div>
+            <div class="field">
+              <label for="margin">Маржа, % <span class="v" id="marginVal">—</span></label>
+              <input type="number" id="margin" min="0" max="100" step="0.5" inputmode="decimal">
+              <div class="hint" id="marginHint">Только из публичных отчётностей</div>
+            </div>
+          </div>
+
+          <h3 style="margin-top:26px">Допущения модели</h3>
+
+          <div class="field">
+            <label for="p1">Доля tier-1 обращений <span class="v" id="p1Val">50%</span></label>
+            <input type="range" id="p1" min="20" max="70" step="1" value="50">
+            <div class="hint">Статус заказа, возврат, наличие, подбор, доставка, оплата</div>
+          </div>
+          <div class="field">
+            <label for="p2">Закрывает агент сам <span class="v" id="p2Val">55%</span></label>
+            <input type="range" id="p2" min="10" max="90" step="1" value="55">
+            <div class="hint">Бенчмарки: Intercom 70–84% для tier-1, Ozon фактически до 20%</div>
+          </div>
+          <div class="field">
+            <label for="p3">Агент готовит, человек подтверждает <span class="v" id="p3Val">15%</span></label>
+            <input type="range" id="p3" min="0" max="40" step="1" value="15">
+            <div class="hint">Экономия — половина времени оператора: он только проверяет</div>
+          </div>
+          <div class="field">
+            <label for="aht">Минут на обращение <span class="v" id="ahtVal">10</span></label>
+            <input type="range" id="aht" min="4" max="25" step="1" value="10">
+            <div class="hint">Публичные бенчмарки колл-центров: 8–12 минут</div>
+          </div>
+          <div class="field">
+            <label for="cai">Стоимость обращения у агента, ₽ <span class="v" id="caiVal">4</span></label>
+            <input type="range" id="cai" min="0" max="30" step="1" value="4">
+            <div class="hint">Модель и инфраструктура на вашем контуре</div>
+          </div>
+          <div class="field">
+            <label for="d">Доля оборота через агентный канал, % <span class="v" id="dVal">1,0%</span></label>
+            <input type="range" id="d" min="0" max="5" step="0.1" value="1">
+            <div class="hint">Прогноз по РФ: 2–4% к 2028–29 (Korus/DataInsight). Здесь — нижняя граница с запасом</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- результат ---------- -->
+      <div class="result">
+        <div class="pad">
+          <div class="lbl">Гарантируется пилотом</div>
+          <div class="big" id="aNet">0<span class="cur">млн ₽/год</span></div>
+          <div class="sub" id="aSub">Экономия на процессе: минус стоимость решения</div>
+
+          <div class="rule"></div>
+
+          <div class="row"><span class="k">Валовая экономия на процессе</span><span class="v" id="aGross">—</span></div>
+          <div class="row"><span class="k">Стоимость решения в год</span><span class="v" id="aCost">—</span></div>
+          <div class="row"><span class="k">Сэкономлено человеко-часов в год</span><span class="v" id="aHours">—</span></div>
+          <div class="row"><span class="k">Потенциал нового канала</span><span class="v" id="bPot">—</span></div>
+          <div class="row"><span class="k">Итого в день</span><span class="v" id="perDay">—</span></div>
+
+          <span class="badge guaranteed" id="badgeGuaranteed">Гарантируется пилотом · 2–3 недели</span>
+          <span class="badge potential">Потенциал канала — не гарантия · 6–24 мес</span>
+
+          <p class="note">
+            Критерий остановки фиксируется письменно до старта. Не достигли — пилот закрывается,
+            вы забираете отчёт и артефакты.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="what">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="no">01</span><h2>Что именно внедряется</h2></div>
+    <p class="sec-sub reveal">
+      Три модуля. Каждый работает на вашей инфраструктуре: ваши модели, ваш контур, без телеметрии.
+      Ядро — под MIT, открытое.
+    </p>
+    <div class="modules">
+      <div class="mod reveal">
+        <span class="tag">READINESS</span>
+        <h3>Готовность к агентскому каналу</h3>
+        <p>Измеритель читает вашу витрину так же, как агент покупателя, и показывает, сколько процентов товара он способен купить и почему остальное не может.</p>
+        <ul>
+          <li>Покрытие обязательных полей по каждой карточке</li>
+          <li>Наличие товарного фида и открытого checkout для агентов</li>
+          <li>Приоритетный план закрытия разрывов</li>
+        </ul>
+      </div>
+      <div class="mod reveal">
+        <span class="tag">RAIL</span>
+        <h3>Доказательный исполнитель</h3>
+        <p>Агент берёт рутину, но каждое действие проходит через проверяемый гейт, а человек подтверждает необратимые операции.</p>
+        <ul>
+          <li>Реестр разрешений: раздельные права чтения и записи, лимиты</li>
+          <li>Обязательное подтверждение и fail-closed: нет подтверждения — нет действия</li>
+          <li>Полный след: источник, правило, версия политики, кто подтвердил</li>
+        </ul>
+      </div>
+      <div class="mod reveal">
+        <span class="tag">LEDGER</span>
+        <h3>Экономика в рублях</h3>
+        <p>Считает то, что не считают: истинный cost per resolution, разделение «отклонено» и «решено», атрибуцию AI-трафика и вклад агентов отдельно от классических моделей.</p>
+        <ul>
+          <li>Baseline «до» и честное «после»</li>
+          <li>Отчёт, который принимает финансовый директор</li>
+          <li>Критерий остановки как часть договора</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="formula">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="no">02</span><h2>Формула</h2></div>
+    <p class="sec-sub reveal">Нажмите, чтобы раскрыть. Значения подставлены из полей выше.</p>
+
+    <details class="formula reveal">
+      <summary><span>Раскрыть формулу и подстановку</span><span class="chev">›</span></summary>
+      <div class="body">
+        <div class="fml">
+          <div class="line"><span class="what">Часы в месяц</span><span class="expr">H = M × (p1×p2 + p1×p3×q) × AHT / 60</span></div>
+          <div class="line"><span class="what">Валовая экономия</span><span class="expr">A_gross = H × 12 × C</span></div>
+          <div class="line"><span class="what">Стоимость решения</span><span class="expr">cost = M × 12 × p1 × p2 × cost_ai + fixed × 12</span></div>
+          <div class="line"><span class="what">Чистый эффект A</span><span class="expr">A_net = A_gross − cost</span></div>
+          <div class="line"><span class="what">Потенциал канала B</span><span class="expr">B = R × d × m</span></div>
+          <div class="line"><span class="what">В день</span><span class="expr">день = (A_net + B) / 365</span></div>
+        </div>
+
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Ключ</th><th>Значение</th><th>Смысл</th></tr></thead>
+            <tbody>
+              <tr><td>M</td><td class="num" id="fM">—</td><td>обращений в месяц</td></tr>
+              <tr><td>p1</td><td class="num" id="fP1">—</td><td>доля tier-1</td></tr>
+              <tr><td>p2</td><td class="num" id="fP2">—</td><td>доля, которую агент закрывает сам</td></tr>
+              <tr><td>p3</td><td class="num" id="fP3">—</td><td>доля «агент готовит — человек подтверждает»</td></tr>
+              <tr><td>q</td><td class="num">0,5</td><td>доля времени оператора, снимаемая подготовкой</td></tr>
+              <tr><td>AHT</td><td class="num" id="fAht">—</td><td>минут на обращение</td></tr>
+              <tr><td>C</td><td class="num" id="fC">—</td><td>стоимость часа оператора, ₽</td></tr>
+              <tr><td>cost_ai</td><td class="num" id="fCai">—</td><td>стоимость обращения у агента, ₽</td></tr>
+              <tr><td>fixed</td><td class="num">120 000 ₽/мес</td><td>фиксированные затраты на контур</td></tr>
+              <tr><td>R</td><td class="num" id="fRev">—</td><td>выручка за год, ₽</td></tr>
+              <tr><td>d</td><td class="num" id="fD">—</td><td>доля оборота через агентный канал</td></tr>
+              <tr><td>m</td><td class="num" id="fMargin">—</td><td>маржа</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:18px;font-size:14px;color:var(--muted)">
+          <code style="font-family:var(--mono)">q = 0,5</code> — фиксированное допущение: при подготовке
+          оператор тратит половину обычного времени. <code style="font-family:var(--mono)">fixed = 120 000 ₽/мес</code> —
+          сопровождение контура, мониторинг и приёмка. Оба меняются в настройках заказчика.
+        </p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section id="coef">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="no">03</span><h2>Коэффициенты и их источники</h2></div>
+    <p class="sec-sub reveal">
+      Ни одного числа без следа. Денежные величины — из публичных прайсов и открытых вакансий,
+      доли — из публичных кейсов внедрений, и калибруются так, чтобы попадать в их диапазоны.
+    </p>
+
+    <div class="tbl-wrap reveal">
+      <table class="tbl">
+        <thead><tr><th>Величина</th><th>Значение</th><th>Источник</th><th>Тип</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Стоимость часа оператора (аутсорсинг)</td><td class="num">960 ₽</td>
+            <td><a href="https://www.forbes.ru/tekhnologii/564710-otlozit-trubku-pocemu-kontakt-centry-pocti-ne-rastut" target="_blank" rel="noopener">Forbes: 16 ₽/мин</a></td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>Стоимость часа оператора (свой КЦ)</td><td class="num">1 360–2 040 ₽</td>
+            <td><a href="https://www.telecontact.ru/" target="_blank" rel="noopener">Телеконтакт: КЦ 10 FTE = 2–3 млн ₽/мес</a></td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>Зарплата оператора поддержки</td><td class="num">27 100–70 000 ₽/мес</td>
+            <td><a href="https://hh.ru/employer/2180" target="_blank" rel="noopener">hh.ru: вакансии Ozon</a> (6 294–6 495 открытых)</td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>Модератор / оператор карточек</td><td class="num">20 000–45 000 ₽/мес</td>
+            <td><a href="https://hh.ru/employer/2523" target="_blank" rel="noopener">hh.ru: М.Видео, Wildberries</a></td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>Рынок контакт-центров РФ</td><td class="num">31 млрд ₽/год</td>
+            <td><a href="http://survey.iksconsulting.ru/page154623976.html" target="_blank" rel="noopener">iKS Consulting</a>: текст ~988 млн/год, +37,5%</td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>Верхняя граница p2 (зрелый e-commerce)</td><td class="num">70–84%</td>
+            <td><a href="https://www.intercom.com/learning-center/ecommerce-customer-service-ai-first-approach" target="_blank" rel="noopener">Intercom</a></td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>Нижняя граница p2 (незрелый контур)</td><td class="num">до 20%</td>
+            <td><a href="https://vc.ru/services/3221336-luchshij-ii-agent-dlya-marketplejsov-sravnenie-populyarnyh-servisov" target="_blank" rel="noopener">vc.ru: «Умный ассистент» Ozon</a></td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>Автоматизация в финтехе</td><td class="num">52%</td>
+            <td><a href="https://www.renins.ru/press/news/item/gruppa-renessans-strakhovanie-izobretaet-strakhovanie-zanovo-s-pomoshchyu-ii/" target="_blank" rel="noopener">Ренессанс Страхование</a></td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>LLM в модерации</td><td class="num">94% точность</td>
+            <td><a href="https://avito.tech/content/e1bch2sz31-kak-mi-vnedryali-llm-v-moderatsiyu-avito" target="_blank" rel="noopener">avito.tech</a></td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+          <tr>
+            <td>Доля агентной торговли (прогноз, 2028–29)</td><td class="num">2–4%</td>
+            <td><a href="https://datainsight.ru/agentic-commerce2026" target="_blank" rel="noopener">DataInsight × Korus</a></td>
+            <td><span class="tag-type est">прогноз</span></td>
+          </tr>
+          <tr>
+            <td>Доля покупателей, пропускающих товары с плохими данными</td><td class="num">~40%</td>
+            <td><a href="https://vc.ru/ya_polyakoff/3002258-agentic-kommerciya-i-ii-agenty-v-e-commerce" target="_blank" rel="noopener">Gartner, через vc.ru</a></td>
+            <td><span class="tag-type open">публично</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="companies">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="no">04</span><h2>Компании</h2></div>
+    <p class="sec-sub reveal">
+      Нажмите на карточку — подставятся публичные данные, и расчёт пересчитается.
+      Каждая строка показывает, откуда взято число. Где данные не раскрыты — так и написано.
+    </p>
+    <div class="companies reveal" id="companyGrid"></div>
+  </div>
+</section>
+
+<section id="verify">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="no">05</span><h2>Как это проверить</h2></div>
+    <p class="sec-sub reveal">
+      Расчёт — не картинка. Формула открыта, измеритель открыт, числа пересчитываются в CI
+      при каждом изменении.
+    </p>
+
+    <div class="notes">
+      <div class="note reveal"><span class="i">1</span><p><b>Измерьте свою витрину.</b> Анонимный GET, без браузерной автоматизации — так же, как работает агент. Одна команда, без зависимостей:</p></div>
+    </div>
+<pre class="reveal"><code>git clone https://github.com/Balanov/readiness-probe.git
+cd readiness-probe
+python readiness_probe.py --targets targets.json --out out</code></pre>
+
+    <div class="notes" style="margin-top:22px">
+      <div class="note reveal"><span class="i">2</span><p><b>Контрольная группа в CI.</b> При каждом пуше прогон перезамеряет витрины с заведомо хорошей разметкой. Если измеритель деградировал — сборка падает. Так опубликованные числа не могут устареть незаметно.</p></div>
+      <div class="note reveal"><span class="i">3</span><p><b>Формула открыта целиком.</b> Все коэффициенты вынесены в ползунки, каждый имеет ссылку на публичный источник. Ничего не спрятано в «экспертной оценке».</p></div>
+      <div class="note warn reveal"><span class="i">!</span><p><b>Чего расчёт не делает.</b> Не обещает конкретную сумму как факт. Не смешивает гарантируемую экономию и потенциальную выручку. Не использует закрытые базы: где число оценка — там стоит метка «оценка» и источник.</p></div>
+    </div>
+
+    <div class="cta reveal">
+      <a class="btn primary" href="mailto:office@balanov.pro?subject=%D0%9F%D0%B8%D0%BB%D0%BE%D1%82-%D0%B0%D1%83%D0%B4%D0%B8%D1%82">Прогнать по моей компании <span class="accent">→</span></a>
+      <a class="btn outline" href="https://github.com/Balanov/readiness-probe" rel="noopener">Код измерителя</a>
+      <a class="btn outline" href="https://balanov.pro/">balanov.pro</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Антон Баланов · <a href="https://balanov.pro/">balanov.pro</a> · <a href="https://github.com/Balanov">github.com/Balanov</a></span>
+    <span>Расчёт — пример, а не оферта. Финальные цифры фиксируются после пилота.</span>
+  </div>
+</footer>
+
+<script src="./companies.js"></script>
+<script src="./calc.js"></script>
+</body>
+</html>

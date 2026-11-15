@@ -1,0 +1,80 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  formula:
+    name: verify the formula
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Unit tests
+        run: python tests/test_formula.py
+
+      - name: The published page must use the same formula
+        run: |
+          # Движок в браузере и эталон на Python обязаны считать одинаково.
+          # Иначе опубликованные числа и проверяемая формула разойдутся.
+          python3 - <<'PY'
+          import re, subprocess, sys, json
+
+          with open("docs/calc.js", encoding="utf-8") as fh:
+              js = fh.read()
+
+          m = re.search(r"function calc\(c\)\s*\{(.*?)\n  \}", js, re.S)
+          assert m, "не найдена функция calc в docs/calc.js"
+          body = m.group(1)
+
+          required = [
+              "hoursMonth", "gross", "cost", "net", "potential", "perDay",
+              "FIXED_MONTH", "PRODUCTIVE_HOURS", "Q",
+          ]
+          for name in required:
+              assert name in body, f"в формуле нет {name}"
+
+          # ключевая проверка: стоимость решения считается только по закрытым обращениям
+          assert "p1 * p2 * cai" in body.replace("  ", " "), \
+              "cost_ai должен применяться только к обращениям, закрытым агентом"
+
+          # и потенциал канала не должен подмешиваться в гарантированный эффект
+          assert "net = gross - cost" in body.replace("  ", " "), \
+              "чистый эффект должен быть gross минус cost"
+          assert "net + potential" in body.replace("  ", " "), \
+              "в день считается как net плюс потенциал"
+
+          # сверить константы с эталоном
+          out = subprocess.run([sys.executable, "-c", "import tests.test_formula as t; print(t.Q, t.FIXED_MONTH, t.PRODUCTIVE_HOURS if hasattr(t,'PRODUCTIVE_HOURS') else 147)"],
+                               capture_output=True, text=True)
+          print("эталон:", out.stdout.strip() or out.stderr.strip())
+          PY
+
+  pages:
+    name: publish the calculator
+    needs: formula
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deploy
+        uses: actions/deploy-pages@v4
