@@ -34,14 +34,14 @@ jobs:
               py = fh.read()
 
           def js_const(name):
-              m = re.search(rf"{name}\s*=\s*([0-9.]+)", js)
+              m = re.search(rf"{name}\s*=\s*([0-9_]+(?:\.[0-9]+)?)", js)
               assert m, f"в calc.js нет {name}"
-              return float(m.group(1))
+              return float(m.group(1).replace("_", ""))
 
           def py_const(name):
-              m = re.search(rf"^{name}\s*=\s*([0-9.]+)", py, re.M)
+              m = re.search(rf"^{name}\s*=\s*([0-9_]+(?:\.[0-9]+)?)", py, re.M)
               assert m, f"в test_formula.py нет {name}"
-              return float(m.group(1))
+              return float(m.group(1).replace("_", ""))
 
           for name in ("Q", "FIXED_MONTH", "PRODUCTIVE_HOURS"):
               a, b = js_const(name), py_const(name)
