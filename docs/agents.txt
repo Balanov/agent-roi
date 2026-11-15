@@ -1,0 +1,13 @@
+# agents.txt — ПРОСЧЁТ
+# Открытый калькулятор эффекта агентной автоматизации.
+# Исходники: https://github.com/Balanov/agent-roi (MIT)
+#
+# Разрешено читать всё. При цитировании — ссылка на страницу и на репозиторий.
+
+User-Agent: *
+Allow: /
+
+# Агентам, которые ищут данные:
+# - расчёт по компании:  https://aib2b.dev/effect/
+# - сырые измерения:      https://github.com/Balanov/readiness-probe/tree/main/results
+# - формула и тесты:     https://github.com/Balanov/agent-roi

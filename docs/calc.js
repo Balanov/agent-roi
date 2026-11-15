@@ -1,30 +1,24 @@
-/* Калькулятор эффекта агентной автоматизации.
-   Формула открыта и покрыта юнит-тестами в tests/test_formula.py.
-   Данные компаний — в companies.js, отдельно от движка. */
+/* ПРОСЧЁТ — движок расчёта и витрины.
+ *
+ * Формула вынесена в чистую функцию calc(): она работает и в браузере, и в Node,
+ * чтобы эталон на Python можно было сверять с тем, что считает страница.
+ * Всё остальное — интерфейс, и в Node не выполняется.
+ */
 (function () {
   "use strict";
 
-  /* ---------- допущения модели ---------- */
+  /* ================= ФОРМУЛА ================= */
+
   var Q = 0.5;                 // доля времени оператора, снимаемая подготовкой
   var FIXED_MONTH = 120000;    // фиксированные затраты на контур, ₽/мес
   var DAYS = 365;
   var PRODUCTIVE_HOURS = 147;  // полезных часов оператора в месяц
 
   var CO = {
-    p1: 50,        // доля tier-1, %
-    p2: 55,        // закрывает агент сам, %
-    p3: 15,        // агент готовит, человек подтверждает, %
-    aht: 10,       // минут на обращение
-    cai: 4,        // стоимость обращения у агента, ₽
-    d: 1,          // доля оборота через агентный канал, %
-    c: 1200,       // стоимость часа оператора, ₽
-    m: 0,          // обращений в месяц
-    ops: 0,        // операторов поддержки
-    rev: 0,        // выручка за год, ₽
-    margin: 0      // маржа, %
+    p1: 50, p2: 55, p3: 15, aht: 10, cai: 4, d: 1,
+    c: 1200, m: 0, ops: 0, rev: 0, margin: 0
   };
 
-  /* ---------- расчёт ---------- */
   function calc(c) {
     var M = Number(c.m) || 0;
     var p1 = c.p1 / 100, p2 = c.p2 / 100, p3 = c.p3 / 100;
@@ -34,66 +28,37 @@
     var d = c.d / 100, margin = c.margin / 100;
     var rev = Number(c.rev) || 0;
 
-    // часы, снятые с операторов, за месяц
     var hoursMonth = M * (p1 * p2 + p1 * p3 * Q) * aht / 60;
-    var gross = hoursMonth * 12 * C;                        // валовая экономия, ₽/год
-    var cost = M * 12 * p1 * p2 * cai + FIXED_MONTH * 12;   // стоимость решения, ₽/год
-    var net = gross - cost;                                  // чистый эффект A
-    var potential = rev * d * margin;                        // потенциал канала B
-    var hoursYear = hoursMonth * 12;
+    var gross = hoursMonth * 12 * C;
+    var cost = M * 12 * p1 * p2 * cai + FIXED_MONTH * 12;
+    var net = gross - cost;
+    var potential = rev * d * margin;
 
     return {
       hoursMonth: hoursMonth,
-      hoursYear: hoursYear,
-      gross: gross,
-      cost: cost,
-      net: net,
-      potential: potential,
+      hoursYear: hoursMonth * 12,
+      gross: gross, cost: cost, net: net, potential: potential,
       perDay: (net + potential) / DAYS,
       netPerDay: net / DAYS
     };
   }
 
-  /* ---------- форматирование ---------- */
-  function fmtInt(v) {
-    return Math.round(v).toLocaleString("ru-RU");
-  }
-  function fmtMln(v) {
-    var m = v / 1e6;
-    if (Math.abs(m) >= 100) return fmtInt(v) + " ₽";
-    return (m >= 0 ? "" : "−") + Math.abs(m).toLocaleString("ru-RU", {
-      minimumFractionDigits: 1, maximumFractionDigits: 1
-    }) + " млн ₽";
-  }
-  function fmtShort(v) {
-    var a = Math.abs(v);
-    if (a >= 1e9) return (v / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млрд ₽";
-    if (a >= 1e6) return (v / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млн ₽";
-    if (a >= 1e3) return fmtInt(v) + " ₽";
-    return fmtInt(v) + " ₽";
-  }
-  function fmtPct(v, dec) {
-    return v.toLocaleString("ru-RU", { minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0 }) + "%";
-  }
-
-  /* ---------- состояние ---------- */
-  var state = Object.assign({}, CO);
-  var companies = (typeof window !== "undefined" && window.COMPANIES) || [];
-
-  /* ---------- API (работает и в браузере, и в Node) ---------- */
   var api = {
     calc: calc, CO: CO, Q: Q, FIXED_MONTH: FIXED_MONTH, PRODUCTIVE_HOURS: PRODUCTIVE_HOURS
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") window.CONTOUR = api;
-
-  // Без DOM (Node — сверка движка с эталоном) дальше идти некуда.
   if (typeof document === "undefined") return;
 
-  /* ---------- элементы ---------- */
+  /* ================= ИНТЕРФЕЙС ================= */
+
   var $ = function (id) { return document.getElementById(id); };
-  var elCompany = $("company"), elM = $("m"), elC = $("c"), elRev = $("rev"), elMargin = $("margin");
-  var elOps = $("ops");
+  var state = Object.assign({}, CO);
+  var companies = (window.COMPANIES || []);
+  var readiness = (window.READINESS || []);
+
+  var elCompany = $("company"), elM = $("m"), elC = $("c"), elRev = $("rev"),
+      elMargin = $("margin"), elOps = $("ops");
   var sliders = {
     p1: $("p1"), p2: $("p2"), p3: $("p3"), aht: $("aht"), cai: $("cai"), d: $("d")
   };
@@ -105,17 +70,64 @@
     state.aht = Number(sliders.aht.value);
     state.cai = Number(sliders.cai.value);
     state.d = Number(sliders.d.value);
-    state.ops = Number(elOps.value) || 0;
-    state.m = Number(elM.value) || 0;
-    state.c = Number(elC.value) || 0;
-    state.rev = Number(elRev.value) || 0;
-    state.margin = Number(elMargin.value) || 0;
+    state.ops = elOps ? (Number(elOps.value) || 0) : 0;
+    state.m = elM ? (Number(elM.value) || 0) : 0;
+    state.c = elC ? (Number(elC.value) || 0) : 0;
+    // выручка и маржа приходят из карточки компании, а не из полей ввода
+    if (elRev) state.rev = Number(elRev.value) || 0;
+    if (elMargin) state.margin = Number(elMargin.value) || 0;
   }
 
-  /* Поток из штата: операторов × 147 полезных часов × 60 ÷ AHT. */
   function flowFromOps() {
     if (!state.ops) return 0;
     return Math.round(state.ops * PRODUCTIVE_HOURS * 60 / (state.aht || 1));
+  }
+
+  /* ---------- форматирование ---------- */
+  function fmtInt(v) { return Math.round(v).toLocaleString("ru-RU"); }
+  function fmtMoney(v) {
+    var a = Math.abs(v);
+    if (a >= 1e9) return (v / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млрд ₽";
+    if (a >= 1e6) return (v / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млн ₽";
+    if (a >= 1e3) return fmtInt(v) + " ₽";
+    return fmtInt(v) + " ₽";
+  }
+  function fmtPct(v, dec) {
+    return v.toLocaleString("ru-RU", { minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0 }) + "%";
+  }
+  function fmtHours(v) { return fmtInt(v) + " ч"; }
+
+  /* ---------- пересчёт и вывод ---------- */
+  var lastNet = null;
+  var netCur = 0;
+  var netRaf = null;
+
+  function setNet(target) {
+    var node = $("aNet");
+    if (!node) return;
+    if (netRaf) { cancelAnimationFrame(netRaf); netRaf = null; }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+        Math.abs(target - netCur) < 1) {
+      netCur = target;
+      node.textContent = fmtMoney(target);
+      return;
+    }
+    var from = netCur, t0 = null, dur = 520;
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      netCur = from + (target - from) * e;
+      node.textContent = fmtMoney(netCur);
+      if (p < 1) {
+        netRaf = requestAnimationFrame(step);
+      } else {
+        netRaf = null;
+        netCur = target;
+        node.textContent = fmtMoney(target);
+      }
+    }
+    netRaf = requestAnimationFrame(step);
   }
 
   function render() {
@@ -124,28 +136,30 @@
     var empty = !state.m && !state.rev;
 
     if (empty) {
-      $("aNet").innerHTML = "—";
-      $("aSub").textContent = "Подставьте свои цифры слева — или выберите компанию в списке ниже. Считаем только то, что можно проверить.";
-      ["aGross", "aCost", "aHours", "bPot", "perDay"].forEach(function (id) {
-        $(id).textContent = "—";
-      });
+      if (netRaf) { cancelAnimationFrame(netRaf); netRaf = null; }
+      netCur = 0;
+      $("aNet").textContent = "—";
     } else {
-      $("aNet").innerHTML = fmtMln(r.net) + '<span class="cur">/год</span>';
-      $("aSub").textContent = r.net >= 0
-        ? "Экономия на процессе минус стоимость решения"
-        : "При текущих допущениях экономия не покрывает стоимость решения — это нормальный результат, разговор всё равно полезен";
-      $("aGross").textContent = fmtShort(r.gross);
-      $("aCost").textContent = fmtShort(r.cost);
-      $("aHours").textContent = fmtInt(r.hoursYear) + " ч";
-      $("bPot").textContent = fmtShort(r.potential);
-      $("perDay").textContent = fmtShort(r.perDay) + " /день";
+      setNet(r.net);
     }
+    $("aSub").textContent = empty
+      ? "Выберите компанию или впишите свой штат поддержки."
+      : (r.net >= 0
+        ? "Экономия на процессе минус стоимость решения. Проверяется пилотом за 2–3 недели."
+        : "При текущих допущениях экономия не покрывает стоимость решения — это нормальный результат, разговор всё равно полезен.");
 
-    $("mVal").textContent = state.m ? fmtInt(state.m) : "—";
+    $("aGross").textContent = empty ? "—" : fmtMoney(r.gross);
+    $("aCost").textContent = empty ? "—" : fmtMoney(r.cost);
+    $("aHours").textContent = empty ? "—" : fmtHours(r.hoursYear);
+    $("aFte").textContent = empty
+      ? "—"
+      : fmtInt(Math.round(r.hoursYear / (PRODUCTIVE_HOURS * 12)));
+    $("bPot").textContent = empty ? "—" : fmtMoney(r.potential);
+    $("perDay").textContent = empty ? "—" : fmtMoney(r.perDay) + " /день";
+
     $("opsVal").textContent = state.ops ? fmtInt(state.ops) : "—";
+    $("mVal").textContent = state.m ? fmtInt(state.m) : "—";
     $("cVal").textContent = state.c ? fmtInt(state.c) + " ₽" : "—";
-    $("revVal").textContent = state.rev ? fmtShort(state.rev) : "—";
-    $("marginVal").textContent = state.margin ? fmtPct(state.margin, 1) : "—";
     $("p1Val").textContent = fmtPct(state.p1);
     $("p2Val").textContent = fmtPct(state.p2);
     $("p3Val").textContent = fmtPct(state.p3);
@@ -153,21 +167,83 @@
     $("caiVal").textContent = state.cai + " ₽";
     $("dVal").textContent = state.d.toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + "%";
 
-    $("fM").textContent = state.m ? fmtInt(state.m) : "—";
-    $("fP1").textContent = fmtPct(state.p1);
-    $("fP2").textContent = fmtPct(state.p2);
-    $("fP3").textContent = fmtPct(state.p3);
-    $("fAht").textContent = state.aht + " мин";
-    $("fC").textContent = state.c ? fmtInt(state.c) + " ₽" : "—";
-    $("fCai").textContent = state.cai + " ₽";
-    $("fRev").textContent = state.rev ? fmtShort(state.rev) : "—";
-    $("fD").textContent = state.d.toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + "%";
-    $("fMargin").textContent = state.margin ? fmtPct(state.margin, 1) : "—";
+    // подсветка изменившегося числа
+    if (lastNet !== null && Math.abs(lastNet - r.net) > 1) {
+      var node = $("aNet");
+      node.classList.add("changed");
+      setTimeout(function () { node.classList.remove("changed"); }, 600);
+    }
+    lastNet = r.net;
 
+    renderWaterfall(r, empty);
+    renderGauge(r, empty);
+    renderScenarios(r, empty);
+    renderSticky(r, empty);
     renderGrid(r);
   }
 
-  /* ---------- карточки компаний ---------- */
+  /* ---------- шкала-прибор ---------- */
+  var GAUGE_LEN = 257.6;
+
+  function renderGauge(r, empty) {
+    var arc = $("gaugeArc"), arm = $("gaugeArm"), cap = $("gaugeCap");
+    if (!arc || !arm) return;
+    var ratio = (empty || !r.gross) ? 0 : Math.max(0, Math.min(1, r.net / r.gross));
+    var neg = !empty && r.net < 0;
+    arc.style.strokeDashoffset = String(GAUGE_LEN * (1 - ratio));
+    arc.classList.toggle("neg", neg);
+    arm.classList.toggle("neg", neg);
+    arm.style.transform = "rotate(" + (-180 + ratio * 180) + "deg)";
+    if (cap) {
+      cap.textContent = empty
+        ? "Доля экономии, остающаяся после стоимости решения."
+        : (neg
+          ? "Экономия не покрывает стоимость решения"
+          : Math.round(ratio * 100) + "% валовой экономии остаётся после стоимости решения");
+    }
+  }
+
+  /* ---------- сценарии: диапазон вместо одной точки ---------- */
+  var SC_LOW_P2 = 20;   // факт Ozon: собственный ассистент закрывает до 20%
+  var SC_HIGH_P2 = 84;  // верхняя граница Intercom
+
+  function renderScenarios(r, empty) {
+    var lo = $("scLow"), base = $("scBase"), hi = $("scHigh");
+    if (!lo || !base || !hi) return;
+    if (empty) {
+      lo.textContent = "—";
+      base.textContent = "—";
+      hi.textContent = "—";
+      return;
+    }
+    lo.textContent = fmtMoney(calc(Object.assign({}, state, { p2: SC_LOW_P2 })).net);
+    base.textContent = fmtMoney(r.net);
+    hi.textContent = fmtMoney(calc(Object.assign({}, state, { p2: SC_HIGH_P2 })).net);
+  }
+
+  /* ---------- липкая панель ---------- */
+  function renderSticky(r, empty) {
+    var v = $("sbNet");
+    if (!v) return;
+    v.textContent = empty ? "—" : fmtMoney(r.net) + " /год";
+  }
+
+  function renderWaterfall(r, empty) {
+    var max = Math.max(r.gross, r.cost, 1);
+    setWf("barHours", "wfHours", r.hoursYear / max, empty ? "—" : fmtHours(r.hoursYear));
+    setWf("barGross", "wfGross", r.gross / max, empty ? "—" : fmtMoney(r.gross));
+    setWf("barCost", "wfCost", r.cost / max, empty ? "—" : "− " + fmtMoney(r.cost));
+    setWf("barNet", "wfNet", r.net / max, empty ? "—" : fmtMoney(r.net));
+  }
+
+  function setWf(barId, valId, ratio, text) {
+    var bar = $(barId);
+    var val = $(valId);
+    if (bar) bar.style.width = Math.max(0, Math.min(100, ratio * 100)) + "%";
+    if (val) val.textContent = text;
+  }
+
+  /* ---------- сетка компаний ---------- */
   function renderGrid(r) {
     var grid = $("companyGrid");
     if (!grid) return;
@@ -175,149 +251,305 @@
     companies.forEach(function (co) {
       var card = document.createElement("button");
       card.type = "button";
-      card.className = "comp" + (co.id === state.id ? " is-active" : "");
+      card.className = "co";
       var eff = "";
-      var effLabel = "экономия в год";
+      var tag = "";
       if (co.m && co.c) {
-        // Считаем по собственным настройкам компании, а не по текущим ползункам:
-        // число на карточке должно совпадать с тем, что получится после выбора.
         var rr = calc(Object.assign({}, state, {
           m: co.m, c: co.c, rev: co.rev || 0, margin: co.margin || 0
         }, co.over || {}));
-        eff = fmtShort(rr.net);
+        eff = fmtMoney(rr.net);
+        tag = '<span class="tag">публично</span>';
       } else {
         eff = "нужен штат";
-        effLabel = "объём поддержки не раскрыт";
+        tag = '<span class="tag na">не раскрыто</span>';
       }
       var hh = co.hh ? " · " + fmtInt(co.hh) + " вак. hh" : "";
       card.innerHTML =
-        '<div class="nm">' + co.name + "</div>" +
+        '<div class="nm">' + co.name + tag + "</div>" +
         '<div class="sec">' + co.sector + "</div>" +
-        '<div class="eff"><span>' + effLabel + '</span><b>' + eff + "</b></div>" +
+        '<div class="eff"><span>экономия в год</span><b>' + eff + "</b></div>" +
         '<div class="src">' + (co.srcShort || "") + hh + "</div>";
-      card.addEventListener("click", function () { applyCompany(co); });
+      card.addEventListener("click", function () { openDrawer(co); });
       grid.appendChild(card);
     });
   }
 
-  /* ---------- применение компании ---------- */
-  function applyCompany(co) {
-    state.id = co.id;
-    if (co.m) {
-      elM.value = co.m;
-      // Эквивалентный штат, чтобы было видно, сколько это людей.
-      if (elOps) {
-        var aht = Number(sliders.aht.value) || 10;
-        elOps.value = Math.max(0, Math.round(co.m * aht / (PRODUCTIVE_HOURS * 60)));
-      }
-      $("mHint").innerHTML = co.mSource || "";
-    } else {
-      elM.value = "";
-      if (elOps) elOps.value = "";
-      $("mHint").innerHTML = co.mSource
-        ? co.mSource
-        : "Публично не раскрыто — подставьте свой штат поддержки слева, поток выведется автоматически";
-    }
-    if (co.c) elC.value = co.c;
-    if (co.rev) elRev.value = co.rev;
-    if (co.margin) elMargin.value = co.margin;
-    if (co.over) {
-      Object.keys(co.over).forEach(function (k) {
-        if (sliders[k]) sliders[k].value = co.over[k];
-      });
-    }
-    elCompany.value = co.id;
+  /* ---------- боковая панель ---------- */
+  function openDrawer(co) {
+    var rr = calc(Object.assign({}, state, {
+      m: co.m || 0, c: co.c || state.c, rev: co.rev || 0, margin: co.margin || 0
+    }, co.over || {}));
 
-    $("companyHint").innerHTML = co.hint || "";
-    $("revHint").innerHTML = co.revSource
-      ? "Источник: " + co.revSource + (co.revType === "estimate" ? " <b>(оценка)</b>" : "")
-      : "Публичных данных нет — подставьте из своей отчётности";
-    $("marginHint").innerHTML = co.marginSource
-      ? "Источник: " + co.marginSource
-      : "Маржа не раскрыта — подставьте свою";
-    render();
+    $("dTitle").textContent = co.name;
+    $("dSub").textContent = co.sector + " · " + (co.srcShort || "");
+
+    var rows = [
+      ["Выручка за год", co.rev ? fmtMoney(co.rev) : "не раскрыта"],
+      ["Маржа", co.margin ? fmtPct(co.margin, 1) : "не раскрыта"],
+      ["Объём поддержки", co.m ? fmtInt(co.m) + " обращений/мес" : "не раскрыт"],
+      ["Эквивалентный штат", co.m ? fmtInt(Math.round(co.m * state.aht / (PRODUCTIVE_HOURS * 60))) + " операторов" : "—"],
+      ["Экономия на процессе", co.m ? fmtMoney(rr.net) + " /год" : "нужен штат"],
+      ["Вакансий на hh.ru", co.hh ? fmtInt(co.hh) : "—"]
+    ];
+    $("dKv").innerHTML = rows.map(function (x) {
+      return '<div class="kv"><span class="k">' + x[0] + '</span><span class="v">' + x[1] + "</span></div>";
+    }).join("");
+
+    var srcs = [];
+    if (co.revSource) srcs.push(co.revSource);
+    if (co.marginSource) srcs.push(co.marginSource);
+    if (co.mSource) srcs.push(co.mSource);
+    $("dSrcs").innerHTML = srcs.map(function (s) {
+      return '<div style="font-size:13px;line-height:1.6;color:var(--muted);padding:9px 0;border-bottom:1px solid var(--line)">' + s + "</div>";
+    }).join("") || '<div class="hint">Источников нет</div>';
+
+    $("drawer").classList.add("open");
+    document.body.style.overflow = "hidden";
   }
 
-  /* ---------- селект компаний ---------- */
+  function closeDrawer() {
+    $("drawer").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  /* ---------- тепловая карта ---------- */
+  var HEAT_COLS = [
+    { key: "http", label: "GET 200" },
+    { key: "name", label: "name" },
+    { key: "price", label: "price" },
+    { key: "availability", label: "availability" },
+    { key: "sku", label: "sku" }
+  ];
+
+  function heatCell(value) {
+    if (value === null || value === undefined) {
+      return { bg: "var(--line)", title: "не измерено" };
+    }
+    if (value === "yes") return { bg: "oklch(.62 .13 207)", title: "доступно" };
+    if (value === "no") return { bg: "oklch(.86 .03 22)", title: "недоступно" };
+    if (value >= 0.75) return { bg: "oklch(.62 .13 207)", title: Math.round(value * 100) + "%" };
+    if (value >= 0.4) return { bg: "oklch(.74 .12 207)", title: Math.round(value * 100) + "%" };
+    if (value > 0) return { bg: "oklch(.84 .11 207)", title: Math.round(value * 100) + "%" };
+    return { bg: "oklch(.95 .03 207)", title: "0%" };
+  }
+
+  function renderHeat() {
+    var host = $("heat");
+    if (!host || !readiness.length) return;
+    host.style.setProperty("--cols", String(HEAT_COLS.length));
+
+    var head = '<div class="heat-row"><span class="hname" style="font:600 10px var(--mono);color:var(--muted);letter-spacing:.06em">ВИТРИНА</span>' +
+      HEAT_COLS.map(function (c) { return '<span class="hlbl">' + c.label + "</span>"; }).join("") + "</div>";
+    host.innerHTML = head;
+
+    readiness.forEach(function (row, idx) {
+      var el = document.createElement("div");
+      el.className = "heat-row";
+      var cells = "";
+      HEAT_COLS.forEach(function (col) {
+        var v = null;
+        if (col.key === "http") v = row.status === 200 ? "yes" : "no";
+        else if (row.total) v = row.cov[col.key];
+        var c = heatCell(v);
+        cells += '<span class="cell" style="background:' + c.bg + '" title="' +
+          row.name + " · " + col.label + ": " + c.title + '"></span>';
+      });
+      el.innerHTML = '<span class="hname" title="' + row.name + '">' + row.name + "</span>" + cells;
+      el.style.opacity = "0";
+      el.style.transform = "translateX(-8px)";
+      el.style.transition = "opacity .45s var(--ease),transform .45s var(--ease)";
+      host.appendChild(el);
+      setTimeout(function () {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+        el.querySelectorAll(".cell").forEach(function (cell, k) {
+          setTimeout(function () { cell.classList.add("on"); }, k * 22);
+        });
+      }, 40 * idx);
+    });
+  }
+
+  /* ---------- счётчики при прокрутке ---------- */
+  function countUp(el) {
+    var target = parseFloat(el.dataset.count || "0");
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.textContent = fmtInt(target);
+      return;
+    }
+    var t0 = null, dur = 1100;
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmtInt(target * e);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- построение ---------- */
   function buildSelect() {
     if (!elCompany) return;
-    var html = '<option value="">— свои цифры —</option>';
+    var html = '<option value="">— выберите компанию —</option>';
     companies.forEach(function (co) {
       html += '<option value="' + co.id + '">' + co.name + " — " + co.sector + "</option>";
     });
     elCompany.innerHTML = html;
+  }
+
+  function applyCompany(co) {
+    state.id = co.id;
+    state.rev = co.rev || 0;
+    state.margin = co.margin || 0;
+    if (co.m) {
+      elM.value = co.m;
+      var aht = Number(sliders.aht.value) || 10;
+      elOps.value = Math.max(0, Math.round(co.m * aht / (PRODUCTIVE_HOURS * 60)));
+      $("companyHint").innerHTML = co.mSource || "";
+    } else {
+      elM.value = "";
+      elOps.value = "";
+      $("companyHint").innerHTML = co.mSource ||
+        "Публично не раскрыто — подставьте свой штат поддержки, поток выведется автоматически";
+    }
+    if (co.c) elC.value = co.c;
+    if (elRev && co.rev) elRev.value = co.rev;
+    if (elMargin && co.margin) elMargin.value = co.margin;
+    if (co.over) {
+      Object.keys(co.over).forEach(function (k) { if (sliders[k]) sliders[k].value = co.over[k]; });
+    }
+    elCompany.value = co.id;
+    render();
+  }
+
+  /* ---------- события ---------- */
+  function bind() {
+    Object.keys(sliders).forEach(function (k) {
+      if (sliders[k]) sliders[k].addEventListener("input", function () {
+        readInputs();
+        if (sliders[k] === sliders.aht && state.ops) {
+          elM.value = flowFromOps();
+        }
+        render();
+      });
+    });
+
+    elOps.addEventListener("input", function () {
+      hideExample();
+      readInputs();
+      if (state.ops) {
+        elM.value = flowFromOps();
+      }
+      render();
+    });
+
+    if (elM) {
+      elM.addEventListener("input", function () {
+        elOps.value = "";
+        readInputs();
+        render();
+      });
+    }
+
+    [elC, elRev, elMargin].forEach(function (el) {
+      if (el) el.addEventListener("input", render);
+    });
+
     elCompany.addEventListener("change", function () {
+      hideExample();
       var id = elCompany.value;
       if (!id) {
         state.id = null;
-        $("companyHint").textContent = "Публичные данные подставятся автоматически. Всё можно изменить.";
-        ["mHint", "revHint", "marginHint"].forEach(function (id2) { $(id2).textContent = ""; });
+        state.rev = 0;
+        state.margin = 0;
+        $("companyHint").textContent = "Выберите компанию или впишите свой штат поддержки.";
         render();
         return;
       }
       var co = companies.filter(function (x) { return x.id === id; })[0];
       if (co) applyCompany(co);
     });
-  }
 
-  /* ---------- события ---------- */
-  Object.keys(sliders).forEach(function (k) {
-    if (sliders[k]) sliders[k].addEventListener("input", render);
-  });
-
-  // штат поддержки → поток обращений
-  if (elOps) {
-    elOps.addEventListener("input", function () {
-      readInputs();
-      if (state.ops) {
-        elM.value = flowFromOps();
-        $("mHint").innerHTML = "Выведено из штата: " + fmtInt(state.ops) +
-          " операторов × " + PRODUCTIVE_HOURS + " ч × 60 ÷ " + state.aht + " мин";
-      }
-      render();
+    // плитки формулы ведут на источник
+    document.querySelectorAll(".tile").forEach(function (t) {
+      t.addEventListener("click", function () {
+        var u = t.dataset.src;
+        if (u) window.open(u, "_blank", "noopener");
+      });
     });
-  }
-  // ручная правка потока сбрасывает вывод из штата
-  if (elM) {
-    elM.addEventListener("input", function () {
-      if (elOps) elOps.value = "";
-      readInputs();
-      if (state.m) {
-        $("mHint").innerHTML = "Введено вручную. Проверьте, что совпадает со штатом поддержки.";
-      }
-      render();
+
+    // копирование формулы
+    var copy = $("copyFormula");
+    if (copy) {
+      copy.addEventListener("click", function () {
+        var text = ($("formulaText").innerText || "").trim();
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(function () {
+            copy.textContent = "скопировано";
+            setTimeout(function () { copy.textContent = "скопировать"; }, 1600);
+          });
+        }
+      });
+    }
+
+    // панель
+    document.querySelectorAll("[data-close]").forEach(function (n) {
+      n.addEventListener("click", closeDrawer);
     });
-  }
-  // изменение AHT пересчитывает поток, если он выведен из штата
-  if (sliders.aht) {
-    sliders.aht.addEventListener("input", function () {
-      readInputs();
-      if (state.ops) {
-        elM.value = flowFromOps();
-        $("mHint").innerHTML = "Пересчитано: " + fmtInt(state.ops) +
-          " операторов × " + PRODUCTIVE_HOURS + " ч × 60 ÷ " + state.aht + " мин";
-      }
-      render();
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeDrawer();
     });
+
+    // появление блоков и счётчики
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("in");
+          if (e.target.dataset.count !== undefined) countUp(e.target);
+          io.unobserve(e.target);
+        });
+      }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+      document.querySelectorAll(".rv").forEach(function (el) { io.observe(el); });
+      document.querySelectorAll("[data-count]").forEach(function (el) { io.observe(el); });
+    } else {
+      document.querySelectorAll(".rv").forEach(function (el) { el.classList.add("in"); });
+      document.querySelectorAll("[data-count]").forEach(function (el) { countUp(el); });
+    }
   }
 
-  [elC, elRev, elMargin].forEach(function (el) {
-    if (el) el.addEventListener("input", render);
-  });
+  /* ---------- липкая панель: показывается, когда прибор ушёл из экрана ---------- */
+  function hideExample() {
+    var note = $("exampleNote");
+    if (note) note.hidden = true;
+  }
 
-  /* ---------- появление ---------- */
-  var reveals = document.querySelectorAll(".reveal");
-  if ("IntersectionObserver" in window) {
+  function watchCalc() {
+    var bar = $("stickybar"), panel = $("calc");
+    if (!bar || !panel || !("IntersectionObserver" in window)) return;
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+        bar.classList.toggle("on", !e.isIntersecting);
+        bar.setAttribute("aria-hidden", e.isIntersecting ? "true" : "false");
       });
-    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
-    reveals.forEach(function (el) { io.observe(el); });
-  } else {
-    reveals.forEach(function (el) { el.classList.add("in"); });
+    }, { threshold: 0.2 });
+    io.observe(panel);
+  }
+
+  /* ---------- пример на публичных данных ---------- */
+  function initExample() {
+    var co = companies.filter(function (x) { return x.id === "ozon"; })[0];
+    if (!co) return;
+    applyCompany(co);
+    var note = $("exampleNote");
+    if (note) note.hidden = false;
   }
 
   buildSelect();
+  initExample();
   render();
+  renderHeat();
+  bind();
+  watchCalc();
 })();
