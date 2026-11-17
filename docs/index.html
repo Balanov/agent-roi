@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ПРОСЧЁТ — посчитайте эффект агентной автоматизации до пилота</title>
-<meta name="description" content="Открытый калькулятор эффекта: выбираете компанию — получаете сумму в рублях. Формула раскрыта, каждый коэффициент со ссылкой на публичный источник, расчёт пересчитывается в CI.">
-<meta name="theme-color" content="#fafbfc">
+<title>ПРОСЧЁТ — эффект агентной автоматизации в рублях, с открытым кодом</title>
+<meta name="description" content="Открытый калькулятор эффекта: выбираете компанию — получаете сумму в рублях, формулу и ссылку на публичный источник каждого коэффициента. 18 компаний, диапазон вместо одной точки, код и тесты под MIT.">
+<meta name="theme-color" content="#161c22">
 <link rel="icon" href="./logo.svg">
 <link rel="stylesheet" href="./_theme.css">
 <link rel="canonical" href="https://aib2b.dev/effect/">
@@ -17,11 +17,11 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "ПРОСЧЁТ",
-  "alternateName": "Калькулятор эффекта агентной автоматизации",
+  "alternateName": "Открытый калькулятор эффекта агентной автоматизации",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
-  "description": "Открытый калькулятор эффекта агентной автоматизации: формула раскрыта, коэффициенты привязаны к публичным источникам, расчёт проверяется тестами в CI.",
-  "softwareVersion": "2.0.0",
+  "description": "Открытый калькулятор эффекта: формула раскрыта, коэффициенты привязаны к публичным источникам, расчёт проверяется тестами в CI.",
+  "softwareVersion": "3.0.0",
   "license": "https://opensource.org/licenses/MIT",
   "codeRepository": "https://github.com/Balanov/agent-roi",
   "author": { "@type": "Person", "name": "Антон Баланов", "url": "https://balanov.pro/" },
@@ -30,36 +30,19 @@
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB" }
 }
 </script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Dataset",
-  "name": "Готовность витрин к покупкам через ИИ-агента",
-  "description": "Измерение структурной доступности 28 витрин: анонимный GET без браузерной автоматизации, как работает агент покупателя. С контрольной группой.",
-  "dateCreated": "2026-11-15",
-  "inLanguage": "ru",
-  "creator": { "@type": "Person", "name": "Антон Баланов", "url": "https://balanov.pro/" },
-  "license": "https://opensource.org/licenses/MIT",
-  "codeRepository": "https://github.com/Balanov/readiness-probe",
-  "measurementTechnique": "Анонимный HTTP GET без браузерной автоматизации и без авторизации",
-  "distribution": [
-    { "@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://github.com/Balanov/readiness-probe/tree/main/results" }
-  ]
-}
-</script>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="wrap">
-    <a class="lockup" href="#top" aria-label="ПРОСЧЁТ — на главную">
+<header class="top">
+  <div class="wrap top-in">
+    <a class="lockup" href="#top" aria-label="ПРОСЧЁТ">
       <span class="mark">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M2 14.5h4v-3.5h4V7.5h4" stroke="#67d4e8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="14.6" y="4" width="3.4" height="3.4" rx="1.1" fill="#67d4e8"/>
+          <path d="M2 14.5h4v-3.5h4V7.5h4" stroke="#6fd8ec" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="14.6" y="4" width="3.4" height="3.4" rx="1.1" fill="#6fd8ec"/>
         </svg>
       </span>
-      <span class="name">ПРОСЧЁТ</span>
+      <span class="word">ПРОСЧЁТ</span>
       <span class="badges">
         <a class="badge" href="https://github.com/Balanov/agent-roi/blob/main/LICENSE" target="_blank" rel="noopener" title="Лицензия MIT">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
@@ -73,143 +56,139 @@
     </a>
     <nav class="nav">
       <a href="#calc">Расчёт</a>
+      <a href="#measured">Замер</a>
       <a href="#formula">Формула</a>
-      <a href="#measured">Что видно агенту</a>
       <a href="#companies">Компании</a>
-      <a href="#verify">Как проверить</a>
+      <a href="#verify">Проверка</a>
       <a href="#limits">Границы</a>
     </nav>
-    <div class="right">
-      <a class="btn outline sm" href="https://github.com/Balanov/agent-roi" target="_blank" rel="noopener">Исходники</a>
-    </div>
+    <a class="pill ghost sm" href="https://github.com/Balanov/agent-roi" target="_blank" rel="noopener">Исходники ↗</a>
   </div>
 </header>
 
 <main id="top">
 
-<!-- ================= HERO ================= -->
+<!-- ================= ГЕРОЙ ================= -->
 <section class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <span class="eyebrow"><span class="dot"></span> открытый расчёт · MIT · без обещаний</span>
-      <h1>Эффект, который <span class="hl">можно пересчитать</span></h1>
-      <p class="lead">
-        Выберите компанию — получите сумму в рублях и формулу, из которой она получилась.
-        Каждый коэффициент со ссылкой на публичный источник: отчётность, hh.ru, исследования.
-        Расчёт проверяется тестами при каждом изменении кода.
-      </p>
-
-      <div class="chips">
-        <span class="chip">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12l5 5L20 6"/></svg>
-          13 тестов формулы, зелёный CI
-        </span>
-        <span class="chip">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12l5 5L20 6"/></svg>
-          контрольная группа из 7 витрин
-        </span>
-        <span class="chip">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12l5 5L20 6"/></svg>
-          18 компаний из публичных отчётностей
-        </span>
-      </div>
-
-      <div class="cta">
-        <a class="btn primary" href="#calc">Посчитать мою компанию <span class="hl">→</span></a>
-        <a class="btn outline" href="https://github.com/Balanov/agent-roi" target="_blank" rel="noopener">Как это устроено</a>
-      </div>
+  <div class="wrap">
+    <p class="kicker">открытый расчёт · MIT · проверяемый код</p>
+    <h1>Эффект,<br>который можно<br><span class="hl">пересчитать</span></h1>
+    <p class="lead">
+      Выберите компанию — получите сумму в рублях, формулу, из которой она получилась,
+      и ссылку на публичный источник каждого коэффициента. Ниже — как это устроено.
+    </p>
+    <div class="cta">
+      <a class="pill solid" href="#calc">Посчитать мою компанию <span class="ar">→</span></a>
+      <a class="pill ghost" href="#verify">Как это устроено</a>
     </div>
 
-    <!-- живой расчёт -->
-    <div class="calc" id="calc">
-      <div class="calc-head">
-        <span class="dot"></span>
-        <span class="t">живой расчёт</span>
-        <span class="live">пересчёт при каждом движении</span>
-      </div>
-      <div class="calc-body">
-        <div class="calc-row">
-          <div>
-            <label class="lbl" for="company">Компания</label>
-            <select id="company"></select>
-            <div class="hint" id="companyHint"></div>
-            <div class="example-note" id="exampleNote" hidden>Пример на публичных данных Ozon — двигайте допущения, считается на лету.</div>
-          </div>
-          <div>
-            <label class="lbl" for="ops">Операторов поддержки <span class="v" id="opsVal">—</span></label>
-            <input type="number" id="ops" min="0" step="10" inputmode="numeric" placeholder="сколько у вас людей">
-            <div class="hint">Поток выводится: операторов × 147 ч × 60 ÷ минут на обращение</div>
-          </div>
+    <ol class="steps">
+      <li class="step">
+        <span class="no">01</span>
+        <span class="st">Выбрать компанию</span>
+        <span class="sd">18 компаний из публичных отчётностей — или свои цифры</span>
+      </li>
+      <li class="step">
+        <span class="no">02</span>
+        <span class="st">Получить сумму</span>
+        <span class="sd">в рублях, с формулой и всеми допущениями</span>
+      </li>
+      <li class="step">
+        <span class="no">03</span>
+        <span class="st">Открыть источник</span>
+        <span class="sd">по каждому коэффициенту — ссылка на публичные данные</span>
+      </li>
+      <li class="step">
+        <span class="no">04</span>
+        <span class="st">Пересчитать самому</span>
+        <span class="sd">код, данные и тесты — в открытом репозитории</span>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= РАСЧЁТ ================= -->
+<section id="calc" class="light">
+  <div class="wrap">
+    <p class="kicker dark">01 · расчёт</p>
+    <h2>Считаем по открытым данным</h2>
+    <p class="sec-sub">
+      Ниже — живой расчёт. Меняйте компанию и допущения: сумма, состав и диапазон
+      пересчитываются на лету. Каждое число подписано, у каждого коэффициента есть источник.
+    </p>
+
+    <div class="calc">
+      <div class="calc-in">
+        <div class="field">
+          <label class="lbl" for="company">Компания</label>
+          <select id="company"></select>
+          <p class="note" id="companyHint"></p>
+          <p class="note example" id="exampleNote" hidden>Пример на публичных данных Ozon — двигайте допущения, считается на лету.</p>
+        </div>
+
+        <div class="field">
+          <label class="lbl" for="ops">Операторов поддержки <span class="v" id="opsVal">—</span></label>
+          <input type="number" id="ops" min="0" step="10" inputmode="numeric" placeholder="сколько у вас людей">
+          <p class="note">Поток обращений выводится автоматически: операторов × 147 ч × 60 ÷ минут на обращение.</p>
         </div>
 
         <details class="adv">
-          <summary><span class="chev">›</span> Допущения модели — открыть</summary>
-          <div class="inner">
-            <div>
+          <summary><span class="chev">›</span> Допущения модели</summary>
+          <div class="adv-in">
+            <div class="adv-field">
               <label class="lbl" for="p1">Доля tier-1 <span class="v" id="p1Val">50%</span></label>
               <input type="range" id="p1" min="20" max="70" step="1" value="50">
             </div>
-            <div>
+            <div class="adv-field">
               <label class="lbl" for="p2">Закрывает агент сам <span class="v" id="p2Val">55%</span></label>
               <input type="range" id="p2" min="10" max="90" step="1" value="55">
             </div>
-            <div>
-              <label class="lbl" for="p3">Агент готовит, человек подтверждает <span class="v" id="p3Val">15%</span></label>
+            <div class="adv-field">
+              <label class="lbl" for="p3">Готовит, человек подтверждает <span class="v" id="p3Val">15%</span></label>
               <input type="range" id="p3" min="0" max="40" step="1" value="15">
             </div>
-            <div>
+            <div class="adv-field">
               <label class="lbl" for="aht">Минут на обращение <span class="v" id="ahtVal">10</span></label>
               <input type="range" id="aht" min="4" max="25" step="1" value="10">
             </div>
-            <div>
+            <div class="adv-field">
               <label class="lbl" for="c">Стоимость часа оператора, ₽ <span class="v" id="cVal">1200</span></label>
               <input type="number" id="c" min="0" step="10" inputmode="numeric" value="1200">
             </div>
-            <div>
+            <div class="adv-field">
               <label class="lbl" for="cai">Стоимость обращения у агента, ₽ <span class="v" id="caiVal">4</span></label>
               <input type="range" id="cai" min="0" max="30" step="1" value="4">
             </div>
-            <div>
+            <div class="adv-field">
               <label class="lbl" for="d">Доля оборота в агентском канале, % <span class="v" id="dVal">1,0%</span></label>
               <input type="range" id="d" min="0" max="5" step="0.1" value="1">
             </div>
-            <div>
+            <div class="adv-field">
               <label class="lbl" for="m">Обращений в месяц <span class="v" id="mVal">—</span></label>
               <input type="number" id="m" min="0" step="1000" inputmode="numeric">
             </div>
           </div>
         </details>
+      </div>
 
-        <div class="out">
-          <div class="k">Гарантируется пилотом</div>
+      <div class="calc-out" id="calcOut">
+        <p class="kicker dark">чистый эффект в год</p>
+        <div class="big" id="aNet">—</div>
+        <p class="expl" id="aSub">Выберите компанию или впишите свой штат поддержки.</p>
 
-          <div class="gauge-box">
-            <svg class="gauge" viewBox="0 0 220 132" role="img" aria-label="Доля валовой экономии, остающаяся после стоимости решения">
-              <path class="gauge-track" d="M28 108 A82 82 0 0 1 192 108"></path>
-              <path class="gauge-arc" id="gaugeArc" d="M28 108 A82 82 0 0 1 192 108"></path>
-              <g class="gauge-arm" id="gaugeArm"><circle class="gauge-dot" cx="192" cy="108" r="5.5"></circle></g>
-              <line class="gauge-tick" x1="28" y1="108" x2="28" y2="118"></line>
-              <line class="gauge-tick" x1="110" y1="26" x2="110" y2="36"></line>
-              <line class="gauge-tick" x1="192" y1="108" x2="192" y2="118"></line>
-            </svg>
-            <div class="gauge-center"><div class="big" id="aNet">—</div></div>
+        <div class="split">
+          <div class="col">
+            <p class="ct">Гарантируется пилотом</p>
+            <div class="kv"><span>Валовая экономия</span><b id="aGross">—</b></div>
+            <div class="kv"><span>Стоимость решения</span><b id="aCost">—</b></div>
+            <div class="kv"><span>Часы оператора</span><b id="aHours">—</b></div>
+            <div class="kv"><span>Это ≈ операторов</span><b id="aFte">—</b></div>
           </div>
-
-          <div class="gauge-cap" id="gaugeCap">Доля экономии, остающаяся после стоимости решения.</div>
-          <div class="sub" id="aSub">Выберите компанию или впишите свой штат поддержки.</div>
-
-          <div class="sep"></div>
-
-          <div class="row"><span class="rk">Валовая экономия на процессе</span><span class="rv" id="aGross">—</span></div>
-          <div class="row"><span class="rk">Стоимость решения в год</span><span class="rv" id="aCost">—</span></div>
-          <div class="row"><span class="rk">Сэкономлено человеко-часов в год</span><span class="rv" id="aHours">—</span></div>
-          <div class="row"><span class="rk">Это ≈ операторов поддержки</span><span class="rv" id="aFte">—</span></div>
-          <div class="row"><span class="rk">Потенциал нового канала</span><span class="rv" id="bPot">—</span></div>
-          <div class="row"><span class="rk">Итого в день</span><span class="rv" id="perDay">—</span></div>
-
-          <div class="flags">
-            <span class="flag g">экономия — проверяется пилотом</span>
-            <span class="flag p">потенциал канала — не гарантия</span>
+          <div class="col alt">
+            <p class="ct">Потенциал канала · не гарантия</p>
+            <div class="kv"><span>Оборот × доля × маржа</span><b id="bPot">—</b></div>
+            <div class="kv"><span>В день, вместе</span><b id="perDay">—</b></div>
+            <p class="note">Экономия на процессе проверяется пилотом. Агентский канал — отдельная строка: это 6–24 месяца и ваше решение, как его открыть.</p>
           </div>
         </div>
 
@@ -219,32 +198,66 @@
           <div class="wf-row neg"><span class="wn">Стоимость решения</span><span class="wtrack"><span class="wbar" id="barCost"></span></span><span class="wv" id="wfCost">—</span></div>
           <div class="wf-row total"><span class="wn">Чистый эффект</span><span class="wtrack"><span class="wbar" id="barNet"></span></span><span class="wv" id="wfNet">—</span></div>
         </div>
-        <div class="wf-note">Полосы показывают, из чего сложилась сумма. Максимум — валовая экономия.</div>
 
-        <div class="scenarios">
-          <div class="sc-head">
-            <span class="t">Диапазон, а не одно число</span>
-            <span class="d">Меняется только доля обращений, которую агент закрывает сам: 20% — факт Ozon, 84% — верхняя граница Intercom. Всё остальное — как в расчёте выше.</span>
-          </div>
-          <div class="sc-row">
-            <div class="sc low"><div class="t">Нижняя граница</div><div class="v" id="scLow">—</div><div class="d">агент закрывает 20%</div></div>
-            <div class="sc base"><div class="t">База</div><div class="v" id="scBase">—</div><div class="d">текущие допущения</div></div>
-            <div class="sc high"><div class="t">Верхняя граница</div><div class="v" id="scHigh">—</div><div class="d">агент закрывает 84%</div></div>
-          </div>
+        <div class="scen">
+          <div class="sc low"><span class="t">Нижняя граница</span><span class="v" id="scLow">—</span><span class="d">агент закрывает 20% tier-1</span></div>
+          <div class="sc base"><span class="t">База</span><span class="v" id="scBase">—</span><span class="d">текущие допущения</span></div>
+          <div class="sc high"><span class="t">Верхняя граница</span><span class="v" id="scHigh">—</span><span class="d">агент закрывает 84% tier-1</span></div>
         </div>
       </div>
     </div>
+
+    <p class="src-note">
+      Потолок и низ — не «красивые числа»: 20% — собственный ассистент Ozon закрывает до 20% обращений,
+      84% — верхняя граница из исследования Intercom. Ссылка на оба источника — в блоке «Формула».
+    </p>
   </div>
 </section>
 
-<!-- ================= ДОКАЗАТЕЛЬСТВА ================= -->
-<section id="evidence" style="border-top:0;padding-top:8px">
+<!-- ================= ЗАМЕР ================= -->
+<section id="measured">
   <div class="wrap">
-    <div class="evidence">
-      <div class="ev rv"><div class="n" data-count="28">0</div><div class="k">витрин измерено</div><div class="d">анонимный GET, без браузерной автоматизации — ровно как работает агент покупателя</div></div>
-      <div class="ev rv"><div class="n" data-count="0">0</div><div class="k">полных карточек из 237</div><div class="d">у агента нет ни идентификатора, ни наличия — а без наличия нельзя проверить остаток перед списанием</div></div>
-      <div class="ev rv"><div class="n" data-count="9">0</div><div class="k">витрин закрыты полностью</div><div class="d">401, 403, 307, 498, 439 — для агента без браузерной автоматизации магазина не существует</div></div>
-      <div class="ev rv"><div class="n" data-count="13">0</div><div class="k">тестов формулы</div><div class="d">включая сверку браузерного движка с эталоном на Python</div></div>
+    <p class="kicker dark">02 · замер</p>
+    <h2>Что агент реально видит на витрине</h2>
+    <p class="sec-sub">
+      Это наше собственное измерение, а не пересказ. Анонимный GET без браузерной автоматизации —
+      ровно так отвечает витрина агенту покупателя. Серые клетки — измерение не дошло до этих данных,
+      и мы это не прячем.
+    </p>
+
+    <div class="figs">
+      <div class="fig rv"><span class="n" data-count="28">0</span><span class="t">витрин измерено</span><span class="d">анонимный GET, без браузерной автоматизации — как работает агент покупателя</span></div>
+      <div class="fig rv"><span class="n" data-count="0">0</span><span class="t">полных карточек из 237</span><span class="d">у агента нет остатка — а без остатка нельзя проверить наличие перед списанием</span></div>
+      <div class="fig rv"><span class="n" data-count="9">0</span><span class="t">витрин закрыты полностью</span><span class="d">401, 403, 307, 498, 439 — для агента без браузера магазина не существует</span></div>
+      <div class="fig rv"><span class="n" data-count="13">0</span><span class="t">тестов формулы</span><span class="d">браузерный движок сверяется с эталоном на Python при каждом изменении</span></div>
+    </div>
+
+    <div class="heat rv" id="heat"></div>
+    <div class="heat-legend rv">
+      <span>заполнено</span>
+      <span class="scale">
+        <i style="background:oklch(.62 .13 207)"></i>
+        <i style="background:oklch(.72 .12 207)"></i>
+        <i style="background:oklch(.82 .11 207)"></i>
+        <i style="background:oklch(.93 .03 207)"></i>
+      </span>
+      <span>0 → 100%</span>
+      <span class="gap">·</span>
+      <span>не измерено</span>
+      <span class="scale sm"><i style="background:var(--line)"></i></span>
+    </div>
+
+    <p class="sec-sub tight">
+      Контрольная группа — семь витрин с заведомо хорошей разметкой. Она нужна, чтобы отличить
+      пробел магазина от дефекта измерителя: если контрольные витрины тоже показывают «невидимо»,
+      значит чинить надо инструмент, а не делать вывод о рынке.
+    </p>
+
+    <div class="proofs">
+      <a class="proof" href="https://github.com/Balanov/readiness-probe" target="_blank" rel="noopener"><span class="pt">Измеритель</span><span class="pd">код замера витрин</span></a>
+      <a class="proof" href="https://github.com/Balanov/readiness-probe/tree/main/results" target="_blank" rel="noopener"><span class="pt">Сырые данные</span><span class="pd">результаты без интерпретаций</span></a>
+      <a class="proof" href="https://github.com/Balanov/readiness-probe/tree/main/results_control" target="_blank" rel="noopener"><span class="pt">Контрольная группа</span><span class="pd">семь витрин с хорошей разметкой</span></a>
+      <a class="proof" href="https://github.com/Balanov/readiness-probe" target="_blank" rel="noopener"><span class="pt">История дефектов</span><span class="pd">шесть найденных и исправленных</span></a>
     </div>
   </div>
 </section>
@@ -252,31 +265,44 @@
 <!-- ================= ФОРМУЛА ================= -->
 <section id="formula">
   <div class="wrap">
-    <div class="sec-head rv"><span class="no">01</span><h2>Из чего складывается сумма</h2></div>
-    <p class="sec-sub rv">
+    <p class="kicker dark">03 · формула</p>
+    <h2>Из чего складывается сумма</h2>
+    <p class="sec-sub">
       Четыре шага. На каждом — коэффициент и ссылка на публичный источник.
-      Нажмите на шаг, чтобы увидеть, откуда взято значение.
+      Нажмите на шаг, чтобы открыть источник.
     </p>
 
     <div class="tiles">
       <button class="tile rv" data-src="https://www.telecontact.ru/">
-        <span class="step">1</span>
-        <span><span class="what">Поток обращений</span><span class="why">M = операторов × 147 ч × 60 ÷ минут на обращение. Единственное, что нужно знать CFO.</span></span>
+        <span class="step">01</span>
+        <span class="tb">
+          <span class="what">Поток обращений</span>
+          <span class="why">M = операторов × 147 ч × 60 ÷ минут на обращение. Единственное, что нужно знать CFO.</span>
+        </span>
         <span class="src">источник</span>
       </button>
       <button class="tile rv" data-src="https://www.forbes.ru/tekhnologii/564710-otlozit-trubku-pocemu-kontakt-centry-pocti-ne-rastut">
-        <span class="step">2</span>
-        <span><span class="what">Стоимость часа</span><span class="why">960 ₽ — аутсорсинг (16 ₽/мин). 1 360–2 040 ₽ — свой контакт-центр. Полная стоимость оператора.</span></span>
+        <span class="step">02</span>
+        <span class="tb">
+          <span class="what">Стоимость часа</span>
+          <span class="why">960 ₽ — аутсорсинг (16 ₽/мин). 1 360–2 040 ₽ — свой контакт-центр. Это полная стоимость оператора, а не ставка.</span>
+        </span>
         <span class="src">источник</span>
       </button>
       <button class="tile rv" data-src="https://www.intercom.com/learning-center/ecommerce-customer-service-ai-first-approach">
-        <span class="step">3</span>
-        <span><span class="what">Доля, которую закрывает агент</span><span class="why">Нижняя граница — до 20% (Ozon, факт). Верхняя — 70–84% (Intercom). По умолчанию 55%.</span></span>
+        <span class="step">03</span>
+        <span class="tb">
+          <span class="what">Доля, которую закрывает агент</span>
+          <span class="why">Нижняя граница — до 20% (Ozon, факт). Верхняя — 70–84% (Intercom). По умолчанию 55%.</span>
+        </span>
         <span class="src">источник</span>
       </button>
       <button class="tile rv" data-src="https://datainsight.ru/agentic-commerce2026">
-        <span class="step">4</span>
-        <span><span class="what">Потенциал агентского канала</span><span class="why">2–4% рынка к 2028–29 (Korus × DataInsight). По умолчанию 1% — нижняя граница с запасом. Не гарантия.</span></span>
+        <span class="step">04</span>
+        <span class="tb">
+          <span class="what">Потенциал агентского канала</span>
+          <span class="why">2–4% рынка к 2028–29 (Korus × DataInsight). По умолчанию 1% — нижняя граница с запасом. Не гарантия.</span>
+        </span>
         <span class="src">источник</span>
       </button>
     </div>
@@ -292,93 +318,61 @@ cost_year = M × 12 × p1×p2 × cost_ai + fixed × 12
 <span class="hl">A_net     = A_gross − cost_year</span>          <span class="c"># гарантируется пилотом</span>
 
 <span class="c"># потенциал нового канала, ₽/год — не гарантия</span>
-B         = R × d × m
+B         = R × d × margin
 
 <span class="c"># фиксированные допущения: q = 0,5 · fixed = 120 000 ₽/мес · AHT = 10 мин</span></pre>
     </div>
-  </div>
-</section>
 
-<!-- ================= ЧТО ВИДИТ АГЕНТ ================= -->
-<section id="measured">
-  <div class="wrap">
-    <div class="sec-head rv"><span class="no">02</span><h2>Что агент реально видит на витрине</h2></div>
-    <p class="sec-sub rv">
-      Это наше собственное измерение, а не пересказ. Анонимный GET, без браузерной автоматизации.
-      Сетка показывает, что удалось прочитать с каждой витрины; серые клетки — измерение не
-      дошло до этих данных, и мы это не прячем.
-    </p>
-    <div class="heat rv" id="heat"></div>
-    <div class="heat-legend rv">
-      <span>заполнено</span>
-      <span class="scale">
-        <i style="background:oklch(.62 .13 207)"></i>
-        <i style="background:oklch(.72 .12 207)"></i>
-        <i style="background:oklch(.82 .11 207)"></i>
-        <i style="background:oklch(.93 .03 207)"></i>
-      </span>
-      <span>0 → 100%</span>
-      <span style="margin-left:10px">·</span>
-      <span>не измерено</span>
-      <span class="scale" style="width:26px"><i style="background:var(--line)"></i></span>
+    <div class="proofs">
+      <a class="proof" href="https://github.com/Balanov/agent-roi" target="_blank" rel="noopener"><span class="pt">Исходники</span><span class="pd">код, данные и тесты</span></a>
+      <a class="proof" href="https://github.com/Balanov/agent-roi/blob/main/tests/test_formula.py" target="_blank" rel="noopener"><span class="pt">Тесты формулы</span><span class="pd">13 проверок, эталон на Python</span></a>
+      <a class="proof" href="https://github.com/Balanov/agent-roi/blob/main/docs/companies.js" target="_blank" rel="noopener"><span class="pt">Данные компаний</span><span class="pd">18 компаний, у каждой числа — ссылка</span></a>
+      <a class="proof" href="https://github.com/Balanov/agent-roi/actions" target="_blank" rel="noopener"><span class="pt">Сборка</span><span class="pd">что проверяется при каждом пуше</span></a>
     </div>
-    <p class="sec-sub rv" style="margin-top:22px;margin-bottom:0">
-      Контрольная группа — семь витрин с заведомо хорошей разметкой. Она нужна, чтобы отличить
-      пробел магазина от дефекта измерителя: если контрольные витрины тоже показывают
-      «невидимо», значит чинить надо инструмент, а не делать вывод о рынке.
-      Код измерения и сырые результаты — <a href="https://github.com/Balanov/readiness-probe" target="_blank" rel="noopener" style="color:var(--cyan-700);text-decoration:underline">на GitHub</a>.
-    </p>
   </div>
 </section>
 
 <!-- ================= КОМПАНИИ ================= -->
 <section id="companies">
   <div class="wrap">
-    <div class="sec-head rv"><span class="no">03</span><h2>Компании и их публичные цифры</h2></div>
-    <p class="sec-sub rv">
-      Восемнадцать адресатов: маркетплейсы, ритейл, финтех, тревел, edtech.
-      Нажмите на карточку — откроется расчёт по компании и список источников.
+    <p class="kicker dark">04 · компании</p>
+    <h2>Восемнадцать компаний и их публичные цифры</h2>
+    <p class="sec-sub">
+      Маркетплейсы, ритейл, финтех, тревел, edtech. Нажмите на карточку — откроется расчёт
+      и список источников по каждому числу.
     </p>
     <div class="matrix rv" id="companyGrid"></div>
   </div>
 </section>
 
-<!-- ================= КАК ПРОВЕРИТЬ ================= -->
+<!-- ================= ПРОВЕРКА ================= -->
 <section id="verify">
   <div class="wrap">
-    <div class="sec-head rv"><span class="no">04</span><h2>Как проверить самим</h2></div>
-    <p class="sec-sub rv">
-      Три шага, две минуты. Никакого доверия к нам не требуется — только к коду, который
-      лежит в открытом репозитории.
+    <p class="kicker dark">05 · проверка</p>
+    <h2>Как проверить самим</h2>
+    <p class="sec-sub">
+      Три шага, две минуты. Доверия к нам не требуется — только к коду, который лежит в открытом репозитории.
     </p>
-    <div class="steps">
+    <div class="steps3">
       <div class="step-card rv">
-        <div class="n">ШАГ 1</div>
-        <div class="h">Забрать числа</div>
-        <div class="d">Сырые результаты измерения и расчёта — отдельным файлом, без интерпретаций.</div>
+        <span class="no">01</span>
+        <span class="h">Забрать числа</span>
+        <span class="d">Сырые результаты измерения и расчёта — отдельным файлом, без интерпретаций.</span>
         <pre>results/readiness.json</pre>
       </div>
       <div class="step-card rv">
-        <div class="n">ШАГ 2</div>
-        <div class="h">Пересчитать формулу</div>
-        <div class="d">Тесты проверяют формулу и сверяют браузерный движок с эталоном на Python.</div>
+        <span class="no">02</span>
+        <span class="h">Пересчитать формулу</span>
+        <span class="d">Тесты проверяют формулу и сверяют браузерный движок с эталоном на Python.</span>
         <pre>python tests/test_formula.py</pre>
       </div>
       <div class="step-card rv">
-        <div class="n">ШАГ 3</div>
-        <div class="h">Прогнать на своей витрине</div>
-        <div class="d">Измеритель отвечает тем же способом, каким отвечает агент покупателя.</div>
-        <pre>python readiness_probe.py \\
+        <span class="no">03</span>
+        <span class="h">Прогнать на своей витрине</span>
+        <span class="d">Измеритель отвечает тем же способом, каким отвечает агенту покупателя.</span>
+        <pre>python readiness_probe.py \
   --url https://ваш-магазин/catalog/</pre>
       </div>
-    </div>
-    <div class="cta rv">
-      <a class="btn primary" href="https://github.com/Balanov/agent-roi/actions" target="_blank" rel="noopener">
-        <img src="https://img.shields.io/github/actions/workflow/status/Balanov/agent-roi/ci.yml?branch=main&label=CI" alt="CI: tests" style="height:20px">
-        Состояние сборки
-      </a>
-      <a class="btn outline" href="https://github.com/Balanov/agent-roi" target="_blank" rel="noopener">Репозиторий</a>
-      <a class="btn outline" href="https://github.com/Balanov/readiness-probe" target="_blank" rel="noopener">Измеритель</a>
     </div>
   </div>
 </section>
@@ -386,71 +380,61 @@ B         = R × d × m
 <!-- ================= ГРАНИЦЫ ================= -->
 <section id="limits">
   <div class="wrap">
-    <div class="sec-head rv"><span class="no">05</span><h2>Чего этот расчёт не делает</h2></div>
-    <p class="sec-sub rv">
+    <p class="kicker dark">06 · границы</p>
+    <h2>Чего этот расчёт не делает</h2>
+    <p class="sec-sub">
       Ограничения перечислены раньше выгоды. Если расчёт не подходит вашей ситуации —
       лучше узнать об этом до пилота, чем после.
     </p>
     <div class="limits">
-      <div class="limit rv"><div class="h">Не обещает сумму как факт</div><div class="d">Любое число — результат формулы с конкретными входами. Все входы видны и меняются ползунками.</div></div>
-      <div class="limit rv"><div class="h">Не смешивает гарантию и потенциал</div><div class="d">Экономия на процессе проверяется пилотом. Потенциал агентского канала зависит от того, как вы его откроете, — это 6–24 месяца и отдельная строка.</div></div>
-      <div class="limit rv"><div class="h">Не работает по чужим оценкам</div><div class="d">Где компания не раскрывает данные — стоит «не раскрыто». Подставлять свои числа нужно вам, и это две минуты.</div></div>
-      <div class="limit rv"><div class="h">Не измеряет конверсию</div><div class="d">Считается структурная доступность: что агент может прочитать и купить. Деньги и спрос — зона пилота.</div></div>
+      <div class="limit rv"><span class="h">Не обещает сумму как факт</span><span class="d">Любое число — результат формулы с конкретными входами. Все входы видны и меняются ползунками.</span></div>
+      <div class="limit rv"><span class="h">Не смешивает гарантию и потенциал</span><span class="d">Экономия на процессе проверяется пилотом. Потенциал агентского канала зависит от того, как вы его откроете, — это 6–24 месяца и отдельная строка.</span></div>
+      <div class="limit rv"><span class="h">Не работает по чужим оценкам</span><span class="d">Где компания не раскрывает данные — стоит «не раскрыто». Подставить свои числа нужно вам, и это две минуты.</span></div>
+      <div class="limit rv"><span class="h">Не измеряет конверсию</span><span class="d">Считается структурная доступность: что агент может прочитать и купить. Деньги и спрос — зона пилота.</span></div>
     </div>
   </div>
 </section>
 
 <!-- ================= CTA ================= -->
-<section id="start" style="border-top:0">
-  <div class="wrap">
-    <div class="cta-band rv">
-      <div>
-        <h2>Прогнать по вашей компании</h2>
-        <p>
-          25 минут, бесплатно, без доступа к вашим системам: считаем по вашей витрине
-          и вашему штату поддержки и отдаём счётчик с планом закрытия разрывов.
-          Дальше — пилот 1,5–3 млн ₽ с критерием остановки, зафиксированным письменно.
-        </p>
-      </div>
-      <div class="cta" style="margin-top:0">
-        <a class="btn primary" href="mailto:office@balanov.pro?subject=%D0%9F%D1%80%D0%BE%D0%B3%D0%BE%D0%BD%20%D0%BF%D0%BE%20%D0%BC%D0%BE%D0%B5%D0%B9%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8">Прогнать по моей компании <span style="color:var(--graphite-900)">→</span></a>
-        <a class="btn outline" href="#calc">Попробовать на своих цифрах</a>
-      </div>
+<section id="start" class="dark-band">
+  <div class="wrap band">
+    <div class="band-t">
+      <p class="kicker">следующий шаг</p>
+      <h2>Прогнать по вашей компании</h2>
+      <p class="lead">
+        25 минут, бесплатно, без доступа к вашим системам: считаем по вашей витрине
+        и вашему штату поддержки и отдаём счётчик с планом закрытия разрывов.
+        Дальше — пилот 1,5–3 млн ₽ с критерием остановки, зафиксированным письменно.
+      </p>
+    </div>
+    <div class="cta">
+      <a class="pill solid" href="mailto:office@balanov.pro?subject=%D0%9F%D1%80%D0%BE%D0%B3%D0%BE%D0%BD%20%D0%BF%D0%BE%20%D0%BC%D0%BE%D0%B5%D0%B9%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8">Прогнать по моей компании <span class="ar">→</span></a>
+      <a class="pill ghost" href="#calc">Попробовать на своих цифрах</a>
     </div>
   </div>
 </section>
 
-<div class="stickybar" id="stickybar" aria-hidden="true">
-  <div class="wrap">
-    <div class="sb-l">
-      <span class="sb-k">чистый эффект в год</span>
-      <span class="sb-v" id="sbNet">—</span>
-    </div>
-    <div class="sb-r">
-      <a class="btn outline sm" href="#calc">Изменить допущения</a>
-      <a class="btn primary sm" href="mailto:office@balanov.pro?subject=%D0%9F%D1%80%D0%BE%D0%B3%D0%BE%D0%BD%20%D0%BF%D0%BE%20%D0%BC%D0%BE%D0%B5%D0%B9%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8">Прогнать по моей компании →</a>
-    </div>
-  </div>
-</div>
-
 </main>
 
 <footer>
-  <div class="wrap">
+  <div class="wrap foot">
     <div class="fl">
-      <span class="mark" style="width:30px;height:30px;border-radius:8px;background:var(--graphite-900);display:grid;place-items:center">
-        <svg viewBox="0 0 20 20" fill="none" style="width:18px;height:18px"><path d="M2 14.5h4v-3.5h4V7.5h4" stroke="#67d4e8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><rect x="14.6" y="4" width="3.4" height="3.4" rx="1.1" fill="#67d4e8"/></svg>
+      <span class="mark lg">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M2 14.5h4v-3.5h4V7.5h4" stroke="#6fd8ec" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="14.6" y="4" width="3.4" height="3.4" rx="1.1" fill="#6fd8ec"/>
+        </svg>
       </span>
-      <span style="font-weight:800;letter-spacing:.04em;color:var(--text)">ПРОСЧЁТ</span>
+      <span class="word">ПРОСЧЁТ</span>
       <a class="badge" href="https://github.com/Balanov/agent-roi/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>
       <a class="badge" href="https://github.com/Balanov/agent-roi" target="_blank" rel="noopener">agent-roi</a>
     </div>
-    <span>
-      <a href="https://balanov.pro/">Антон Баланов</a> ·
-      aib2b.dev ·
-      замер 15 ноября 2026 ·
+    <div class="fr">
+      <a href="https://balanov.pro/">Антон Баланов</a>
+      <a href="https://aib2b.dev/">aib2b.dev</a>
       <a href="https://aib2b.dev/privacy">условия</a>
-    </span>
+      <span class="dt">замер 15 ноября 2026</span>
+    </div>
   </div>
 </footer>
 
@@ -459,11 +443,13 @@ B         = R × d × m
   <div class="veil" data-close></div>
   <div class="panel">
     <button class="close" data-close aria-label="Закрыть">✕</button>
+    <p class="kicker dark" id="dSector">—</p>
     <h3 id="dTitle">—</h3>
-    <div class="dsec" id="dSub">—</div>
+    <p class="dsec" id="dSub">—</p>
+    <div class="d-fig"><span class="n" id="dNet">—</span><span class="d">экономия на процессе в год</span></div>
     <div id="dKv"></div>
     <div class="srcs">
-      <div class="h">Источники</div>
+      <p class="ct">Источники</p>
       <div id="dSrcs"></div>
     </div>
   </div>

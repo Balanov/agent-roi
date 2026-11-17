@@ -112,7 +112,7 @@
       node.textContent = fmtMoney(target);
       return;
     }
-    var from = netCur, t0 = null, dur = 520;
+    var from = netCur, t0 = null, dur = 560;
     function step(ts) {
       if (t0 === null) t0 = ts;
       var p = Math.min(1, (ts - t0) / dur);
@@ -142,18 +142,17 @@
     } else {
       setNet(r.net);
     }
+
     $("aSub").textContent = empty
-      ? "Выберите компанию или впишите свой штат поддержки."
+      ? "Выберите компанию или впишите свой штат поддержки — посчитаем по открытым данным."
       : (r.net >= 0
-        ? "Экономия на процессе минус стоимость решения. Проверяется пилотом за 2–3 недели."
+        ? "Столько возвращает год поддержки при текущих допущениях. Проверяется пилотом за 2–3 недели."
         : "При текущих допущениях экономия не покрывает стоимость решения — это нормальный результат, разговор всё равно полезен.");
 
     $("aGross").textContent = empty ? "—" : fmtMoney(r.gross);
     $("aCost").textContent = empty ? "—" : fmtMoney(r.cost);
     $("aHours").textContent = empty ? "—" : fmtHours(r.hoursYear);
-    $("aFte").textContent = empty
-      ? "—"
-      : fmtInt(Math.round(r.hoursYear / (PRODUCTIVE_HOURS * 12)));
+    $("aFte").textContent = empty ? "—" : fmtInt(Math.round(r.hoursYear / (PRODUCTIVE_HOURS * 12)));
     $("bPot").textContent = empty ? "—" : fmtMoney(r.potential);
     $("perDay").textContent = empty ? "—" : fmtMoney(r.perDay) + " /день";
 
@@ -167,7 +166,6 @@
     $("caiVal").textContent = state.cai + " ₽";
     $("dVal").textContent = state.d.toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + "%";
 
-    // подсветка изменившегося числа
     if (lastNet !== null && Math.abs(lastNet - r.net) > 1) {
       var node = $("aNet");
       node.classList.add("changed");
@@ -176,31 +174,24 @@
     lastNet = r.net;
 
     renderWaterfall(r, empty);
-    renderGauge(r, empty);
     renderScenarios(r, empty);
-    renderSticky(r, empty);
     renderGrid(r);
   }
 
-  /* ---------- шкала-прибор ---------- */
-  var GAUGE_LEN = 257.6;
+  /* ---------- состав суммы ---------- */
+  function renderWaterfall(r, empty) {
+    var max = Math.max(r.gross, r.cost, 1);
+    setWf("barHours", "wfHours", r.hoursYear / max, empty ? "—" : fmtHours(r.hoursYear));
+    setWf("barGross", "wfGross", r.gross / max, empty ? "—" : fmtMoney(r.gross));
+    setWf("barCost", "wfCost", r.cost / max, empty ? "—" : "− " + fmtMoney(r.cost));
+    setWf("barNet", "wfNet", r.net / max, empty ? "—" : fmtMoney(r.net));
+  }
 
-  function renderGauge(r, empty) {
-    var arc = $("gaugeArc"), arm = $("gaugeArm"), cap = $("gaugeCap");
-    if (!arc || !arm) return;
-    var ratio = (empty || !r.gross) ? 0 : Math.max(0, Math.min(1, r.net / r.gross));
-    var neg = !empty && r.net < 0;
-    arc.style.strokeDashoffset = String(GAUGE_LEN * (1 - ratio));
-    arc.classList.toggle("neg", neg);
-    arm.classList.toggle("neg", neg);
-    arm.style.transform = "rotate(" + (-180 + ratio * 180) + "deg)";
-    if (cap) {
-      cap.textContent = empty
-        ? "Доля экономии, остающаяся после стоимости решения."
-        : (neg
-          ? "Экономия не покрывает стоимость решения"
-          : Math.round(ratio * 100) + "% валовой экономии остаётся после стоимости решения");
-    }
+  function setWf(barId, valId, ratio, text) {
+    var bar = $(barId);
+    var val = $(valId);
+    if (bar) bar.style.width = Math.max(0, Math.min(100, ratio * 100)) + "%";
+    if (val) val.textContent = text;
   }
 
   /* ---------- сценарии: диапазон вместо одной точки ---------- */
@@ -221,29 +212,13 @@
     hi.textContent = fmtMoney(calc(Object.assign({}, state, { p2: SC_HIGH_P2 })).net);
   }
 
-  /* ---------- липкая панель ---------- */
-  function renderSticky(r, empty) {
-    var v = $("sbNet");
-    if (!v) return;
-    v.textContent = empty ? "—" : fmtMoney(r.net) + " /год";
-  }
-
-  function renderWaterfall(r, empty) {
-    var max = Math.max(r.gross, r.cost, 1);
-    setWf("barHours", "wfHours", r.hoursYear / max, empty ? "—" : fmtHours(r.hoursYear));
-    setWf("barGross", "wfGross", r.gross / max, empty ? "—" : fmtMoney(r.gross));
-    setWf("barCost", "wfCost", r.cost / max, empty ? "—" : "− " + fmtMoney(r.cost));
-    setWf("barNet", "wfNet", r.net / max, empty ? "—" : fmtMoney(r.net));
-  }
-
-  function setWf(barId, valId, ratio, text) {
-    var bar = $(barId);
-    var val = $(valId);
-    if (bar) bar.style.width = Math.max(0, Math.min(100, ratio * 100)) + "%";
-    if (val) val.textContent = text;
-  }
-
   /* ---------- сетка компаний ---------- */
+  function companyTag(co) {
+    if (!co.m) return { cls: "na", text: "не раскрыто" };
+    if (co.mType === "open") return { cls: "", text: "публично" };
+    return { cls: "est", text: "оценка снизу" };
+  }
+
   function renderGrid(r) {
     var grid = $("companyGrid");
     if (!grid) return;
@@ -252,24 +227,27 @@
       var card = document.createElement("button");
       card.type = "button";
       card.className = "co";
+      var tag = companyTag(co);
       var eff = "";
-      var tag = "";
+      var note = "";
       if (co.m && co.c) {
         var rr = calc(Object.assign({}, state, {
           m: co.m, c: co.c, rev: co.rev || 0, margin: co.margin || 0
         }, co.over || {}));
         eff = fmtMoney(rr.net);
-        tag = '<span class="tag">публично</span>';
+        note = co.mType === "open"
+          ? (co.srcShort || "")
+          : "оценка снизу · " + (co.srcShort || "");
       } else {
         eff = "нужен штат";
-        tag = '<span class="tag na">не раскрыто</span>';
+        note = "публично не раскрыто — впишите свой штат поддержки";
       }
       var hh = co.hh ? " · " + fmtInt(co.hh) + " вак. hh" : "";
       card.innerHTML =
-        '<div class="nm">' + co.name + tag + "</div>" +
+        '<div class="nm">' + co.name + '<span class="tag ' + tag.cls + '">' + tag.text + "</span></div>" +
         '<div class="sec">' + co.sector + "</div>" +
         '<div class="eff"><span>экономия в год</span><b>' + eff + "</b></div>" +
-        '<div class="src">' + (co.srcShort || "") + hh + "</div>";
+        '<div class="src">' + note + hh + "</div>";
       card.addEventListener("click", function () { openDrawer(co); });
       grid.appendChild(card);
     });
@@ -281,13 +259,16 @@
       m: co.m || 0, c: co.c || state.c, rev: co.rev || 0, margin: co.margin || 0
     }, co.over || {}));
 
+    $("dSector").textContent = co.sector;
     $("dTitle").textContent = co.name;
-    $("dSub").textContent = co.sector + " · " + (co.srcShort || "");
+    $("dSub").textContent = co.srcShort || "";
+    $("dNet").textContent = (co.m && co.c) ? fmtMoney(rr.net) : "нужен штат";
 
     var rows = [
       ["Выручка за год", co.rev ? fmtMoney(co.rev) : "не раскрыта"],
       ["Маржа", co.margin ? fmtPct(co.margin, 1) : "не раскрыта"],
       ["Объём поддержки", co.m ? fmtInt(co.m) + " обращений/мес" : "не раскрыт"],
+      ["Как получено", co.mType === "open" ? "раскрыто компанией" : (co.mType ? "оценка снизу" : "—")],
       ["Эквивалентный штат", co.m ? fmtInt(Math.round(co.m * state.aht / (PRODUCTIVE_HOURS * 60))) + " операторов" : "—"],
       ["Экономия на процессе", co.m ? fmtMoney(rr.net) + " /год" : "нужен штат"],
       ["Вакансий на hh.ru", co.hh ? fmtInt(co.hh) : "—"]
@@ -297,12 +278,13 @@
     }).join("");
 
     var srcs = [];
+    if (co.mSource) srcs.push(co.mSource);
     if (co.revSource) srcs.push(co.revSource);
     if (co.marginSource) srcs.push(co.marginSource);
-    if (co.mSource) srcs.push(co.mSource);
+    if (co.derivation) srcs.push(co.derivation);
     $("dSrcs").innerHTML = srcs.map(function (s) {
-      return '<div style="font-size:13px;line-height:1.6;color:var(--muted);padding:9px 0;border-bottom:1px solid var(--line)">' + s + "</div>";
-    }).join("") || '<div class="hint">Источников нет</div>';
+      return "<div>" + s + "</div>";
+    }).join("") || '<div>Источников нет</div>';
 
     $("drawer").classList.add("open");
     document.body.style.overflow = "hidden";
@@ -357,8 +339,8 @@
       });
       el.innerHTML = '<span class="hname" title="' + row.name + '">' + row.name + "</span>" + cells;
       el.style.opacity = "0";
-      el.style.transform = "translateX(-8px)";
-      el.style.transition = "opacity .45s var(--ease),transform .45s var(--ease)";
+      el.style.transform = "translateX(-10px)";
+      el.style.transition = "opacity .5s var(--ease),transform .5s var(--ease)";
       host.appendChild(el);
       setTimeout(function () {
         el.style.opacity = "1";
@@ -396,6 +378,11 @@
       html += '<option value="' + co.id + '">' + co.name + " — " + co.sector + "</option>";
     });
     elCompany.innerHTML = html;
+  }
+
+  function hideExample() {
+    var note = $("exampleNote");
+    if (note) note.hidden = true;
   }
 
   function applyCompany(co) {
@@ -519,24 +506,6 @@
     }
   }
 
-  /* ---------- липкая панель: показывается, когда прибор ушёл из экрана ---------- */
-  function hideExample() {
-    var note = $("exampleNote");
-    if (note) note.hidden = true;
-  }
-
-  function watchCalc() {
-    var bar = $("stickybar"), panel = $("calc");
-    if (!bar || !panel || !("IntersectionObserver" in window)) return;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        bar.classList.toggle("on", !e.isIntersecting);
-        bar.setAttribute("aria-hidden", e.isIntersecting ? "true" : "false");
-      });
-    }, { threshold: 0.2 });
-    io.observe(panel);
-  }
-
   /* ---------- пример на публичных данных ---------- */
   function initExample() {
     var co = companies.filter(function (x) { return x.id === "ozon"; })[0];
@@ -551,5 +520,4 @@
   render();
   renderHeat();
   bind();
-  watchCalc();
 })();
