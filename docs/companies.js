@@ -73,9 +73,9 @@ window.COMPANIES = [
     "sector": "Классифайд",
     "rev": null,
     "revType": "open",
-    "revSource": "свежая выручка <b>не раскрыта</b>; последняя публичная — 2023 год, 100,9 млрд ₽ (<a href='https://www.tadviser.ru/index.php/Компания:Avito.ru_(Авито,_КЕХ_еКоммерц,_KEH_eCommerce)' target='_blank' rel='noopener'>РСБУ ООО «КЕХ еКоммерц»</a>)",
+    "revSource": "свежая выручка <b>не раскрыта</b>; последняя публичная — 2023 год, 100,9 млрд ₽ (<a href='https://www.tadviser.ru/index.php/%D0%9A%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F%3AAvito.ru_%28%D0%90%D0%B2%D0%B8%D1%82%D0%BE%2C_%D0%9A%D0%95%D0%A5_%D0%B5%D0%9A%D0%BE%D0%BC%D0%BC%D0%B5%D1%80%D1%86%2C_KEH_eCommerce%29' target='_blank' rel='noopener'>РСБУ ООО «КЕХ еКоммерц»</a>)",
     "margin": null,
-    "marginSource": "не раскрыта — подставьте свою — <a href='https://www.tadviser.ru/index.php/Компания:Avito.ru_(Авито,_КЕХ_еКоммерц,_KEH_eCommerce)' target='_blank' rel='noopener'>https://www.tadviser.ru/index.php/Компания:Avito.ru_(Авито,_КЕХ_еКоммерц,_KEH_eCommerce)</a>",
+    "marginSource": "не раскрыта — подставьте свою — <a href='https://www.tadviser.ru/index.php/%D0%9A%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F%3AAvito.ru_%28%D0%90%D0%B2%D0%B8%D1%82%D0%BE%2C_%D0%9A%D0%95%D0%A5_%D0%B5%D0%9A%D0%BE%D0%BC%D0%BC%D0%B5%D1%80%D1%86%2C_KEH_eCommerce%29' target='_blank' rel='noopener'>https://www.tadviser.ru/index.php/%D0%9A%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F%3AAvito.ru_%28%D0%90%D0%B2%D0%B8%D1%82%D0%BE%2C_%D0%9A%D0%95%D0%A5_%D0%B5%D0%9A%D0%BE%D0%BC%D0%BC%D0%B5%D1%80%D1%86%2C_KEH_eCommerce%29</a>",
     "m": 1000000,
     "mType": "open",
     "mSource": "<b>≈30 000 обращений в день, ≈1 млн в месяц</b> — <a href='https://realnoevremya.ru/articles/260670-prichina-po-kotoroy-avito-otkryl-ofis-v-kazani-zabota-o-sotrudnikah' target='_blank' rel='noopener'>realnoevremya.ru</a> (интервью с Шьямом Намбиаром, директором центра клиентского сервиса Авито)",
@@ -262,18 +262,16 @@ window.COMPANIES = [
     "revSource": "выручка 2025 — 361 млрд ₽ (+9,73%) — <a href='https://www.retail.ru/news/v-2025-godu-vyruchka-seti-vkusvill-vyrosla-na-9-73-12-fevralya-2026-274420/' target='_blank' rel='noopener'>retail.ru</a>",
     "margin": null,
     "marginSource": "не раскрыта — подставьте свою — <a href='https://new-retail.ru/novosti/retail/vyruchka_vkusvilla_po_itogam_2025_goda_vyrosla_na_9_7' target='_blank' rel='noopener'>https://new-retail.ru/novosti/retail/vyruchka_vkusvilla_po_itogam_2025_goda_vyrosla_na_9_7</a>",
-    "m": 500000,
+    "m": null,
     "mType": "open",
-    "mSource": "около 500 тыс. обращений в месяц на горячую линию (обычный месяц), в отделе поддержки почти 900 человек — <a href='https://vkusvill.ru/media/journal/vnutrennyaya-kukhnya-kak-rabotaet-goryachaya-liniya-vkusvilla.html' target='_blank' rel='noopener'>vkusvill.ru</a>",
+    "mSource": "не раскрыто — подставьте свой штат поддержки, поток выведется автоматически",
     "c": 1200,
     "over": {
       "p2": 55
     },
     "hh": 0,
-    "srcShort": "выручка 361 млрд ₽ · 500 000 обращений/мес",
+    "srcShort": "выручка 361 млрд ₽ · 147,5 млн заказов/год",
     "hint": "ВкусВилл, 2025: выручка 361 млрд ₽ (+9,7%), 2 200 точек в 157 городах, 147,5 млн заказов за год (рекорд 30.12 — свыше 600 тыс. заказов в сутки), онлайн — 53% выручки, 9,3 млн карт лояльности. Маржа не раскрыта; ЧП 6,6 млрд ₽ по РСБУ — около 1,8% выручки.",
-    "quote": "В обычный месяц на всю горячую линию приходит порядка 500 тыс. обращений",
-    "caveat": "Единственная компания в выборке с раскрытым объёмом потока прямо от компании: 500 тыс. обращений/мес на горячую линию (страница обновлена 11.08.2025). Пик — декабрь: свыше 1,3 млн запросов за месяц, почти втрое больше обычного; отдельно vc.ru (11.10.2023) приводит рекорд сентября — 1 320 000 обращений. В расчёт взяты 500 тыс. (обычный месяц), а не пик. В hh.ru у ВкусВилла (2211 вакансий) нет ни одной вакансии клиентской поддержки: 3 найденные позиции — «Инженер службы технической поддержки склада» и «Сервис инженер технической поддержки склада», это IT-поддержка склада, а не поддержка покупателей, поэтому hhSupport = 0. Нагрузка на сотрудников: в среднем 120 обращений за смену. Маржа не раскрыта. Выручка — 2025 год.",
     "hhSource": "https://hh.ru/employer/816144"
   },
   {

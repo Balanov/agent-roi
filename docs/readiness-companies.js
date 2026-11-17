@@ -173,7 +173,7 @@ window.READINESS_COMPANIES = [
   "note": "Анонимный GET вернул 439 — агент без браузера страницу не читает",
   "rev": 100900000000,
   "revLabel": "выручка 2023, последняя публичная",
-  "revSource": "свежая выручка <b>не раскрыта</b>; последняя публичная — 2023 год, 100,9 млрд ₽ (<a href='https://www.tadviser.ru/index.php/Компания:Avito.ru_(Авито,_КЕХ_еКоммерц,_KEH_eCommerce)' target='_blank' rel='noopener'>РСБУ ООО «КЕХ еКоммерц»</a>)"
+  "revSource": "свежая выручка <b>не раскрыта</b>; последняя публичная — 2023 год, 100,9 млрд ₽ (<a href='https://www.tadviser.ru/index.php/%D0%9A%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F%3AAvito.ru_%28%D0%90%D0%B2%D0%B8%D1%82%D0%BE%2C_%D0%9A%D0%95%D0%A5_%D0%B5%D0%9A%D0%BE%D0%BC%D0%BC%D0%B5%D1%80%D1%86%2C_KEH_eCommerce%29' target='_blank' rel='noopener'>РСБУ ООО «КЕХ еКоммерц»</a>)"
  },
  {
   "store": "DNS",
