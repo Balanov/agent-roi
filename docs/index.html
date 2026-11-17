@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ПРОСЧЁТ — эффект агентной автоматизации в рублях, с открытым кодом</title>
-<meta name="description" content="Открытый калькулятор эффекта: выбираете компанию — получаете сумму в рублях, формулу и ссылку на публичный источник каждого коэффициента. 18 компаний, диапазон вместо одной точки, код и тесты под MIT.">
+<meta name="description" content="Открытый калькулятор эффекта: выбираете компанию — получаете сумму в рублях, формулу и ссылку на публичный источник каждого коэффициента. В списке только компании с публичными данными, диапазон вместо одной точки, код и тесты под MIT.">
 <meta name="theme-color" content="#161c22">
-<link rel="icon" href="./logo.svg">
-<link rel="stylesheet" href="./_theme.css">
+<link rel="icon" href="./logo.svg?v=4">
+<link rel="stylesheet" href="./_theme.css?v=4">
 <link rel="canonical" href="https://aib2b.dev/effect/">
 <link rel="alternate" hreflang="ru" href="https://aib2b.dev/effect/">
 <link rel="alternate" type="application/json" href="./readiness-data.js">
@@ -86,7 +86,7 @@
       <li class="step">
         <span class="no">01</span>
         <span class="st">Выбрать компанию</span>
-        <span class="sd">18 компаний из публичных отчётностей — или свои цифры</span>
+        <span class="sd"><span data-count-companies>8</span> компаний из публичных отчётностей — или свои цифры</span>
       </li>
       <li class="step">
         <span class="no">02</span>
@@ -326,7 +326,7 @@ B         = R × d × margin
     <div class="proofs">
       <a class="proof" href="https://github.com/Balanov/agent-roi" target="_blank" rel="noopener"><span class="pt">Исходники</span><span class="pd">код, данные и тесты</span></a>
       <a class="proof" href="https://github.com/Balanov/agent-roi/blob/main/tests/test_formula.py" target="_blank" rel="noopener"><span class="pt">Тесты формулы</span><span class="pd">13 проверок, эталон на Python</span></a>
-      <a class="proof" href="https://github.com/Balanov/agent-roi/blob/main/docs/companies.js" target="_blank" rel="noopener"><span class="pt">Данные компаний</span><span class="pd">18 компаний, у каждой числа — ссылка</span></a>
+      <a class="proof" href="https://github.com/Balanov/agent-roi/blob/main/docs/companies.js" target="_blank" rel="noopener"><span class="pt">Данные компаний</span><span class="pd">у каждой компании числа — со ссылкой</span></a>
       <a class="proof" href="https://github.com/Balanov/agent-roi/actions" target="_blank" rel="noopener"><span class="pt">Сборка</span><span class="pd">что проверяется при каждом пуше</span></a>
     </div>
   </div>
@@ -336,9 +336,11 @@ B         = R × d × margin
 <section id="companies">
   <div class="wrap">
     <p class="kicker dark">04 · компании</p>
-    <h2>Восемнадцать компаний и их публичные цифры</h2>
+    <h2>Компании и их публичные цифры</h2>
     <p class="sec-sub">
-      Маркетплейсы, ритейл, финтех, тревел, edtech. Нажмите на карточку — откроется расчёт
+      <span data-count-companies>8</span> компаний: маркетплейсы, ритейл, финтех, тревел, edtech.
+      В списке только те, где объём поддержки можно посчитать по публичным данным —
+      без цифр компанию не показываем. Нажмите на карточку — откроется расчёт
       и список источников по каждому числу.
     </p>
     <div class="matrix rv" id="companyGrid"></div>
@@ -411,6 +413,11 @@ B         = R × d × margin
       <a class="pill solid" href="mailto:office@balanov.pro?subject=%D0%9F%D1%80%D0%BE%D0%B3%D0%BE%D0%BD%20%D0%BF%D0%BE%20%D0%BC%D0%BE%D0%B5%D0%B9%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8">Прогнать по моей компании <span class="ar">→</span></a>
       <a class="pill ghost" href="#calc">Попробовать на своих цифрах</a>
     </div>
+    <p class="band-note">
+      Этот расчёт — обоснование цены решений из каталога: он показывает, что
+      даёт эффект и сколько стоит до пилота.
+      <a href="https://aib2b.dev/catalog">Каталог решений aib2b.dev →</a>
+    </p>
   </div>
 </section>
 
@@ -431,6 +438,7 @@ B         = R × d × margin
     </div>
     <div class="fr">
       <a href="https://balanov.pro/">Антон Баланов</a>
+      <a href="https://aib2b.dev/catalog">Каталог решений</a>
       <a href="https://aib2b.dev/">aib2b.dev</a>
       <a href="https://aib2b.dev/privacy">условия</a>
       <span class="dt">замер 15 ноября 2026</span>
@@ -455,8 +463,8 @@ B         = R × d × margin
   </div>
 </div>
 
-<script src="./companies.js"></script>
-<script src="./readiness-data.js"></script>
-<script src="./calc.js"></script>
+<script src="./companies.js?v=4"></script>
+<script src="./readiness-data.js?v=4"></script>
+<script src="./calc.js?v=4"></script>
 </body>
 </html>

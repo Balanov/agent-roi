@@ -106,6 +106,12 @@
     var node = $("aNet");
     if (!node) return;
     if (netRaf) { cancelAnimationFrame(netRaf); netRaf = null; }
+    if (document.hidden) {
+      // в свёрнутой вкладке анимация не идёт — показываем итог сразу
+      netCur = target;
+      node.textContent = fmtMoney(target);
+      return;
+    }
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
         Math.abs(target - netCur) < 1) {
       netCur = target;
@@ -281,7 +287,9 @@
     if (co.mSource) srcs.push(co.mSource);
     if (co.revSource) srcs.push(co.revSource);
     if (co.marginSource) srcs.push(co.marginSource);
-    if (co.derivation) srcs.push(co.derivation);
+    if (co.derivation) srcs.push("<b>Вывод: " + co.derivation + "</b>");
+    if (co.caveat) srcs.push("<b>Оговорка: " + co.caveat + "</b>");
+    if (co.quote) srcs.push("<i>«" + co.quote + "»</i>");
     $("dSrcs").innerHTML = srcs.map(function (s) {
       return "<div>" + s + "</div>";
     }).join("") || '<div>Источников нет</div>';
@@ -378,6 +386,13 @@
       html += '<option value="' + co.id + '">' + co.name + " — " + co.sector + "</option>";
     });
     elCompany.innerHTML = html;
+  }
+
+  function paintCounts() {
+    var marks = document.querySelectorAll("[data-count-companies]");
+    for (var i = 0; i < marks.length; i++) {
+      marks[i].textContent = String(companies.length);
+    }
   }
 
   function hideExample() {
@@ -516,6 +531,7 @@
   }
 
   buildSelect();
+  paintCounts();
   initExample();
   render();
   renderHeat();

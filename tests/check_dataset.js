@@ -39,6 +39,15 @@ for (const c of list) {
   } else if (!/https?:/.test(String(c.mSource))) {
     fail(`есть объём поддержки, но нет ссылки: ${c.id}`);
   }
+  if (c.m !== null && c.mType !== "open") {
+    // оценка снизу обязана объяснять формулу вывода
+    if (!c.derivation || String(c.derivation).length < 12) {
+      fail(`оценка объёма без формулы вывода: ${c.id}`);
+    }
+  }
+  if (c.m === null) {
+    fail(`эффект не посчитан: нет объёма поддержки у ${c.name} (${c.id})`);
+  }
   if (c.margin === null) {
     if (!EXPLAINS.test(String(c.marginSource))) fail(`маржа не раскрыта, но marginSource не объясняет почему: ${c.id}`);
   } else if (!/https?:/.test(String(c.marginSource))) {
@@ -51,6 +60,8 @@ const withM = list.filter((c) => c.m);
 console.log("с раскрытым объёмом поддержки:", withM.map((c) => `${c.name} (${c.m.toLocaleString("ru-RU")}/мес)`).join(" · "));
 console.log("с раскрытой выручкой:", list.filter((c) => c.rev).length, "из", list.length);
 console.log("с раскрытой маржой:", list.filter((c) => c.margin).length, "из", list.length);
+console.log("с посчитанным эффектом:", withM.length, "из", list.length);
+console.log("из них оценка снизу:", withM.filter((c) => c.mType !== "open").length);
 
 if (bad) {
   console.log(`\n${bad} проблем — данные должны быть либо со ссылкой, либо с объяснением.`);
