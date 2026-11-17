@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Юнит-тесты формулы эффекта.
+Юнит-тесты формулы потери спроса.
+
+Модель: сколько денег компания теряет, пока её каталог недоступен
+ИИ-агенту покупателя.
+
+    demand   = rev × d          весь спрос, который приходит от ИИ-агентов
+    lost     = demand × u       часть, уходящая конкурентам (каталог не готов)
+    captured = demand × (1 − u)  часть, которую компания уже получает
+
+rev — публичный оборот (₽/год), d — доля спроса от агентов, u — наш замер
+готовности витрины (1 = витрина закрыта для агента целиком).
 
 Эталонная реализация на Python дублирует логику docs/calc.js. Если две
 реализации разойдутся — тест в CI это поймает, и опубликованные числа
@@ -18,113 +28,108 @@ import shutil
 import subprocess
 import sys
 
-Q = 0.5                 # доля времени оператора, снимаемая подготовкой
-FIXED_MONTH = 120_000   # фиксированные затраты на контур, ₽/мес
-DAYS = 365
-PRODUCTIVE_HOURS = 147  # полезных часов оператора в месяц
+PILOT_LOW = 1_500_000     # нижняя граница пилота-аудита, ₽
+PILOT_HIGH = 3_000_000
 
 
-def calc(m=0, p1=0.5, p2=0.55, p3=0.15, aht=10.0, c=1200.0,
-         cai=4.0, rev=0.0, d=0.01, margin=0.0) -> dict:
-    """Полный расчёт эффекта. Все доли — в долях единицы."""
-    hours_month = m * (p1 * p2 + p1 * p3 * Q) * aht / 60
-    gross = hours_month * 12 * c
-    cost = m * 12 * p1 * p2 * cai + FIXED_MONTH * 12
-    net = gross - cost
-    potential = rev * d * margin
+def calc(rev: float = 0.0, d: float = 0.01, u=None) -> dict:
+    """Полный расчёт. d — доля в долях единицы, u — доля недоступных товаров."""
+    demand = rev * d
+    lost = 0.0 if u is None else demand * u
+    captured = demand if u is None else demand * (1.0 - u)
     return {
-        "hours_month": hours_month,
-        "hours_year": hours_month * 12,
-        "gross": gross,
-        "cost": cost,
-        "net": net,
-        "potential": potential,
-        "per_day": (net + potential) / DAYS,
-        "net_per_day": net / DAYS,
+        "demand": demand,
+        "lost": lost,
+        "captured": captured,
+        "payback_months": (PILOT_LOW / (lost / 12.0)) if lost > 0 else None,
     }
 
 
-def approx(a: float, b: float, tol: float = 1e-6) -> bool:
+def approx(a: float, b: float, tol: float = 1e-9) -> bool:
     return abs(a - b) <= tol * max(1.0, abs(a), abs(b))
 
 
-def test_zero_flow_gives_zero():
-    r = calc(m=0)
-    assert r["gross"] == 0
-    assert r["net"] == -FIXED_MONTH * 12, "при нулевом потоке остаются только фиксированные затраты"
-    assert r["potential"] == 0
+def test_zero_turnover_gives_zero():
+    r = calc(rev=0.0, d=0.01, u=1.0)
+    assert r["demand"] == 0
+    assert r["lost"] == 0
+    assert r["captured"] == 0
+    assert r["payback_months"] is None, "при нулевой потере окупаемости нет"
 
 
-def test_full_tier1_closure():
-    """p2 = 1 и p3 = 0: агент закрывает все tier-1 сам."""
-    m = 100_000
-    r = calc(m=m, p1=1.0, p2=1.0, p3=0.0, aht=10.0, c=1000.0, cai=0.0)
-    # 100 000 × 10 мин = 1 000 000 минут = 16 666,7 часов в месяц
-    assert approx(r["hours_month"], m * 10 / 60)
-    assert approx(r["gross"], m * 10 / 60 * 12 * 1000.0)
+def test_zero_share_gives_zero():
+    r = calc(rev=998_000_000_000, d=0.0, u=1.0)
+    assert r["demand"] == 0 and r["lost"] == 0
 
 
-def test_zero_unit_cost_means_net_equals_gross():
-    r = calc(m=50_000, cai=0.0)
-    assert approx(r["net"], r["gross"] - FIXED_MONTH * 12), "фиксированные затраты остаются даже при нулевой себестоимости обращения"
+def test_closed_storefront_loses_everything():
+    """Витрина закрыта для агента: u = 1, весь агентский спрос уходит."""
+    rev = 998_000_000_000
+    r = calc(rev=rev, d=0.01, u=1.0)
+    assert approx(r["demand"], rev * 0.01)
+    assert approx(r["lost"], rev * 0.01)
+    assert approx(r["captured"], 0.0)
 
 
-def test_cost_is_charged_only_on_fully_closed_contacts():
-    """cost_ai применяется только к тем обращениям, которые агент закрыл сам."""
-    m, p1, p2, cai = 100_000, 0.5, 0.55, 4.0
-    r = calc(m=m, p1=p1, p2=p2, cai=cai)
-    expected = m * 12 * p1 * p2 * cai + FIXED_MONTH * 12
-    assert approx(r["cost"], expected)
+def test_ready_storefront_loses_nothing():
+    """Витрина готова: u = 0, потери нет, спрос уже получают."""
+    rev = 107_500_000_000
+    r = calc(rev=rev, d=0.01, u=0.0)
+    assert approx(r["lost"], 0.0)
+    assert approx(r["captured"], rev * 0.01)
 
 
-def test_monotonic_in_volume():
-    base = calc(m=10_000)["net"]
-    more = calc(m=20_000)["net"]
-    assert more > base, "больше обращений — больше чистого эффекта"
+def test_partially_ready_storefront():
+    """Половина товаров недоступна — теряется ровно половина агентского спроса."""
+    rev = 10_000_000_000
+    r = calc(rev=rev, d=0.02, u=0.5)
+    assert approx(r["demand"], 200_000_000)
+    assert approx(r["lost"], 100_000_000)
+    assert approx(r["captured"], 100_000_000)
 
 
-def test_monotonic_in_operator_cost():
-    cheap = calc(m=10_000, c=800)["net"]
-    dear = calc(m=10_000, c=2000)["net"]
-    assert dear > cheap, "дороже оператор — выше экономия"
+def test_lost_plus_captured_equals_demand():
+    r = calc(rev=781_000_000_000, d=0.01, u=0.37)
+    assert approx(r["lost"] + r["captured"], r["demand"])
 
 
-def test_monotonic_against_agent_unit_cost():
-    cheap = calc(m=10_000, cai=1)["net"]
-    dear = calc(m=10_000, cai=20)["net"]
-    assert dear < cheap, "дороже обращение у агента — меньше чистый эффект"
+def test_monotonic_in_turnover():
+    small = calc(rev=10_000_000_000, d=0.01, u=1.0)["lost"]
+    big = calc(rev=100_000_000_000, d=0.01, u=1.0)["lost"]
+    assert big > small, "больше оборот — больше потеря"
 
 
-def test_prepared_but_confirmed_saves_half_the_time():
-    """p3 даёт экономию q = 0,5 от времени оператора."""
-    m, p1, p3, aht, c = 100_000, 1.0, 1.0, 10.0, 1000.0
-    only_confirm = calc(m=m, p1=p1, p2=0.0, p3=p3, aht=aht, c=c, cai=0.0)
-    hours = m * (p1 * 0.0 + p1 * p3 * Q) * aht / 60
-    assert approx(only_confirm["hours_month"], hours)
-    assert hours > 0, "подготовка с подтверждением тоже экономит время"
+def test_monotonic_in_agent_share():
+    low = calc(rev=998_000_000_000, d=0.005, u=1.0)["lost"]
+    high = calc(rev=998_000_000_000, d=0.04, u=1.0)["lost"]
+    assert high > low, "выше доля агентского спроса — больше потеря"
 
 
-def test_potential_channel_is_separate_from_net():
-    r = calc(m=100_000, rev=1_000_000_000, d=0.01, margin=0.20)
-    assert approx(r["potential"], 1_000_000_000 * 0.01 * 0.20)
-    assert approx(r["per_day"], (r["net"] + r["potential"]) / DAYS)
-    assert approx(r["net_per_day"], r["net"] / DAYS)
+def test_monotonic_in_unreachable_share():
+    ready = calc(rev=998_000_000_000, d=0.01, u=0.0)["lost"]
+    half = calc(rev=998_000_000_000, d=0.01, u=0.5)["lost"]
+    closed = calc(rev=998_000_000_000, d=0.01, u=1.0)["lost"]
+    assert ready < half < closed
 
 
-def test_per_day_matches_year():
-    r = calc(m=50_000, rev=5_000_000_000, d=0.01, margin=0.15)
-    assert approx(r["per_day"] * DAYS, r["net"] + r["potential"])
+def test_payback_months():
+    """Пилот окупается за 12 месяцев, когда потеря равна стоимости пилота за год."""
+    rev = 150_000_000
+    r = calc(rev=rev, d=0.01, u=1.0)
+    assert approx(r["lost"], 1_500_000)
+    assert approx(r["payback_months"], 12.0)
 
 
-def test_negative_effect_is_reported_not_hidden():
-    """Если экономия не покрывает стоимость — результат отрицательный, а не спрятанный."""
-    r = calc(m=10, c=1000.0)
-    assert r["net"] < 0
+def test_no_payback_when_nothing_is_lost():
+    r = calc(rev=998_000_000_000, d=0.01, u=0.0)
+    assert r["payback_months"] is None
 
 
-def test_gross_equals_hours_times_cost():
-    r = calc(m=77_777, p1=0.47, p2=0.61, p3=0.22, aht=9.0, c=1_234.0)
-    assert approx(r["gross"], r["hours_year"] * 1_234.0)
+def test_unmeasured_storefront_counts_as_no_loss():
+    """u = null: измерить не удалось — потерю не выдумываем, но и спрос не теряем."""
+    r = calc(rev=998_000_000_000, d=0.01, u=None)
+    assert r["lost"] == 0
+    assert approx(r["captured"], r["demand"])
 
 
 def test_js_engine_agrees_with_python_reference():
@@ -139,57 +144,57 @@ def test_js_engine_agrees_with_python_reference():
         print("  (node недоступен — сверка движка пропущена)")
         return
 
-    # JS принимает доли в процентах, Python — в долях. Явно переводим.
+    # JS принимает d в процентах, Python — в долях. Явно переводим.
     cases = [
-        # (m, p1%, p2%, p3%, aht, c, cai, rev, d, margin)
-        (757_500, 50, 30, 15, 10, 1200, 4, 998_000_000_000, 1.0, 23.0),
-        (3_333_333, 50, 30, 15, 10, 1200, 4, 0, 1.0, 0.0),
-        (50_000, 45, 55, 20, 8, 960, 2, 10_000_000_000, 0.5, 15.0),
-        (0, 50, 55, 15, 10, 1200, 4, 0, 1.0, 0.0),
-        (1_000_000, 70, 80, 0, 20, 2000, 10, 0, 2.0, 30.0),
+        # (rev, d (доля), u)
+        (998_000_000_000, 0.01, 1.0),
+        (6_100_000_000_000, 0.04, 1.0),
+        (781_000_000_000, 0.005, 1.0),
+        (107_500_000_000, 0.01, 0.0),
+        (10_900_000_000, 0.02, 1.0),
+        (165_600_000_000, 0.01, 0.25),
+        (0, 0.01, 1.0),
     ]
-    js_cases = [
-        {
-            "m": m, "p1": p1, "p2": p2, "p3": p3, "aht": aht, "c": c,
-            "cai": cai, "rev": rev, "d": d, "margin": margin,
-        }
-        for m, p1, p2, p3, aht, c, cai, rev, d, margin in cases
-    ]
+    js_cases = [{"rev": rev, "d": d * 100.0, "u": u} for rev, d, u in cases]
     script = (
         "const m = require(%s);"
         "const cs = %s;"
-        "console.log(JSON.stringify(cs.map(c => m.calc(c))));"
-    ) % (json.dumps(os.path.abspath(js_path)), json.dumps(js_cases))
+        "console.log(JSON.stringify(cs.map(c => {"
+        "  const r = m.calc(c);"
+        "  return {demand: r.demand, lost: r.lost, captured: r.captured};"
+        "})));"
+    ) % (json.dumps(js_path), json.dumps(js_cases))
 
-    res = subprocess.run([node, "-e", script], capture_output=True, text=True)
-    assert res.returncode == 0, res.stderr
-    got = json.loads(res.stdout)
+    result = subprocess.run([node, "-e", script], capture_output=True, text=True)
+    if result.returncode != 0:
+        print(result.stderr[:800])
+        raise AssertionError("движок в Node не отработал")
 
-    for (m, p1, p2, p3, aht, c, cai, rev, d, margin), g in zip(cases, got):
-        py = calc(m=m, p1=p1 / 100, p2=p2 / 100, p3=p3 / 100,
-                  aht=aht, c=c, cai=cai, rev=rev, d=d / 100, margin=margin / 100)
-        pairs = [
-            ("gross", "gross"), ("cost", "cost"), ("net", "net"),
-            ("potential", "potential"), ("perDay", "per_day"), ("netPerDay", "net_per_day"),
-            ("hoursMonth", "hours_month"), ("hoursYear", "hours_year"),
-        ]
-        for js_key, py_key in pairs:
-            assert approx(g[js_key], py[py_key]), (js_key, (m, p1, p2), g[js_key], py[py_key])
+    js_rows = json.loads(result.stdout.strip().splitlines()[-1])
+    assert len(js_rows) == len(cases)
+    for (rev, d, u), row in zip(cases, js_rows):
+        expected = calc(rev=rev, d=d, u=u)
+        assert approx(row["demand"], expected["demand"]), f"расхождение demand: {rev} {d} {u}"
+        assert approx(row["lost"], expected["lost"]), f"расхождение lost: {rev} {d} {u}"
+        assert approx(row["captured"], expected["captured"]), f"расхождение captured: {rev} {d} {u}"
 
 
 def main() -> int:
-    tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
+    tests = [value for name, value in globals().items() if name.startswith("test_")]
     failed = 0
-    for t in tests:
+    for test in tests:
         try:
-            t()
-            print(f"PASS  {t.__name__}")
-        except AssertionError as e:
+            test()
+            print("PASS", test.__name__)
+        except AssertionError as error:
             failed += 1
-            print(f"FAIL  {t.__name__}: {e}")
-    print(f"\n{len(tests) - failed}/{len(tests)} passed")
+            print("FAIL", test.__name__, "-", error)
+        except Exception as error:  # noqa: BLE001
+            failed += 1
+            print("ERROR", test.__name__, "-", error)
+    print("\n%d/%d passed" % (len(tests) - failed, len(tests)))
     return 1 if failed else 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())
